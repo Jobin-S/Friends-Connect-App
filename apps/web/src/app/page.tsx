@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { RequireAuth, useAuth } from '../lib/auth';
 import { WebRtcCallClient } from '../lib/webrtc-client';
 
@@ -80,7 +81,23 @@ interface ActiveCallSession {
   muted: boolean;
 }
 
+/**
+ * Entry point. Logged-out visitors see the landing page and regular users get the redesigned app
+ * at /home. Celebrity, organizer, support and admin accounts keep this dashboard until their own
+ * screens are redesigned.
+ */
 export default function HomePage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const target = loading ? null : !user ? '/welcome' : user.role === 'NORMAL' ? '/home' : null;
+
+  useEffect(() => {
+    if (target) router.replace(target);
+  }, [target, router]);
+
+  if (loading || target) {
+    return <div className="min-h-screen bg-[#FBF8F4]" aria-busy="true" />;
+  }
   return (
     <RequireAuth>
       <FriendsConnectApp />
