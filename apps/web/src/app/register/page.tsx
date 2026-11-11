@@ -93,7 +93,9 @@ export default function RegisterPage() {
       aside={
         <div className="max-w-md">
           {/* Live preview of the profile being created */}
-          <div className={`w-72 rounded-[2rem] p-6 shadow-glass transition-colors duration-500 ${hueSurface[chosen.hue]}`}>
+          <div
+            className={`w-72 rounded-[2rem] p-6 shadow-glass transition-colors duration-500 ${hueSurface[chosen.hue]}`}
+          >
             <Avatar name={displayName.trim() || 'You'} hue={chosen.hue} size="lg" status="online" />
             <p className="mt-5 text-xl font-extrabold tracking-tight">{displayName.trim() || 'Your name'}</p>
             <p className="text-sm text-ink-soft">
@@ -121,7 +123,15 @@ export default function RegisterPage() {
         <h1 className="mt-7 text-3xl font-extrabold tracking-tight">Create your account</h1>
         <p className="mt-2 flex items-center gap-2 text-ink-soft">
           <span className="grid h-5 w-5 place-items-center rounded-full bg-mint text-ink">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" aria-hidden>
+            <svg
+              width="11"
+              height="11"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              aria-hidden
+            >
               <path d="M5 12l5 5L20 7" />
             </svg>
           </span>
@@ -162,8 +172,20 @@ export default function RegisterPage() {
                       onChange={() => setAccountType(o.value)}
                       className="sr-only"
                     />
-                    <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${hueSurface[o.hue]}`}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <span
+                      className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl ${hueSurface[o.hue]}`}
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden
+                      >
                         <path d={o.icon} />
                       </svg>
                     </span>
@@ -196,7 +218,10 @@ export default function RegisterPage() {
                   className={fieldClass}
                 />
               </AuthField>
-              <AuthField label="About you" hint="At least 10 characters. Shown on your profile after approval.">
+              <AuthField
+                label="About you"
+                hint="At least 10 characters. Shown on your profile after approval."
+              >
                 <textarea
                   required
                   minLength={10}
@@ -252,8 +277,8 @@ export default function RegisterPage() {
 
           {accountType !== 'NORMAL' && (
             <p className="rounded-2xl bg-lilac/50 px-4 py-3 text-sm text-ink">
-              You can use the app straight away. Your {accountType === 'ORG' ? 'host' : 'creator'} tools switch on
-              once we approve your application.
+              You can use the app straight away. Your {accountType === 'ORG' ? 'host' : 'creator'} tools
+              switch on once we approve your application.
             </p>
           )}
 

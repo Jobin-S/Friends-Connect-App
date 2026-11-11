@@ -60,7 +60,10 @@ export default function CelebrityPage() {
             {c.posts.map((p) => {
               const on = liked.includes(p.id);
               return (
-                <li key={p.id} className={`relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[1.5rem] p-3 ${hueSurface[p.hue]}`}>
+                <li
+                  key={p.id}
+                  className={`relative flex aspect-[4/5] flex-col justify-end overflow-hidden rounded-[1.5rem] p-3 ${hueSurface[p.hue]}`}
+                >
                   {p.kind === 'video' && (
                     <span className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/70 backdrop-blur">
                       <svg width="16" height="16" viewBox="0 0 24 24" aria-label="Video">
@@ -74,7 +77,13 @@ export default function CelebrityPage() {
                     aria-pressed={on}
                     className="press mt-2 flex w-fit items-center gap-1 rounded-full bg-white/70 px-2.5 py-1 text-xs font-semibold"
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" className={on ? 'text-coral-deep' : ''} aria-hidden>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      className={on ? 'text-coral-deep' : ''}
+                      aria-hidden
+                    >
                       <path
                         d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"
                         fill={on ? 'currentColor' : 'none'}
@@ -108,15 +117,26 @@ export default function CelebrityPage() {
           <div className="mt-5 grid gap-2">
             {canCall ? (
               <>
-                <ButtonLink href={`/call?with=${encodeURIComponent(c.name)}&type=video&hue=${c.hue}&rate=${c.videoRate}`} size="lg">
+                <ButtonLink
+                  href={`/call?with=${encodeURIComponent(c.name)}&type=video&hue=${c.hue}&rate=${c.videoRate}`}
+                  size="lg"
+                >
                   Start video call
                 </ButtonLink>
-                <ButtonLink href={`/call?with=${encodeURIComponent(c.name)}&type=audio&hue=${c.hue}&rate=${c.audioRate}`} variant="quiet" size="lg">
+                <ButtonLink
+                  href={`/call?with=${encodeURIComponent(c.name)}&type=audio&hue=${c.hue}&rate=${c.audioRate}`}
+                  variant="quiet"
+                  size="lg"
+                >
                   Start audio call
                 </ButtonLink>
               </>
             ) : (
-              <Button size="lg" variant="quiet" onClick={() => toast(`We will tell you when ${c.name} is online`)}>
+              <Button
+                size="lg"
+                variant="quiet"
+                onClick={() => toast(`We will tell you when ${c.name} is online`)}
+              >
                 Notify me when online
               </Button>
             )}

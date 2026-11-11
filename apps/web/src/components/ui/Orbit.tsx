@@ -81,9 +81,7 @@ export function OrbitHero() {
       <div className="glass absolute right-[2%] top-[14%] rounded-2xl px-3 py-2 text-xs font-semibold text-ink shadow-glass animate-drift">
         On a video call, 12:04
       </div>
-      <div
-        className="glass absolute bottom-[12%] left-0 rounded-2xl px-3 py-2 text-xs font-semibold text-ink shadow-glass animate-drift-slow"
-      >
+      <div className="glass absolute bottom-[12%] left-0 rounded-2xl px-3 py-2 text-xs font-semibold text-ink shadow-glass animate-drift-slow">
         Matched with Kiran
       </div>
     </div>

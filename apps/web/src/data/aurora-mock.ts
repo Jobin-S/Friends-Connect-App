@@ -88,9 +88,7 @@ export const celebrities: Celebrity[] = [
     audioRate: 50,
     videoRate: 90,
     replies: 'Back online tomorrow',
-    posts: [
-      { id: 'p8', kind: 'photo', caption: 'Storyboard for the rain scene', likes: 6200, hue: 'lilac' },
-    ],
+    posts: [{ id: 'p8', kind: 'photo', caption: 'Storyboard for the rain scene', likes: 6200, hue: 'lilac' }],
   },
   {
     id: 'sana-ali',
@@ -123,9 +121,7 @@ export const celebrities: Celebrity[] = [
     audioRate: 35,
     videoRate: 65,
     replies: 'Usually picks up within 1 minute',
-    posts: [
-      { id: 'p11', kind: 'video', caption: 'Crowd work, Kochi show', likes: 33100, hue: 'peach' },
-    ],
+    posts: [{ id: 'p11', kind: 'video', caption: 'Crowd work, Kochi show', likes: 33100, hue: 'peach' }],
   },
 ];
 
@@ -226,9 +222,24 @@ export const recentChats = [
   { id: 'r3', name: 'Fathima', hue: 'peach' as Hue, when: 'Yesterday', kind: 'Video', duration: '31:05' },
 ];
 
-export const interests = ['Music', 'Cricket', 'Films', 'Food', 'Travel', 'Comedy', 'Books', 'Tech', 'Dance', 'Startups'];
+export const interests = [
+  'Music',
+  'Cricket',
+  'Films',
+  'Food',
+  'Travel',
+  'Comedy',
+  'Books',
+  'Tech',
+  'Dance',
+  'Startups',
+];
 
 export const formatCount = (n: number) =>
-  n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)}k` : `${n}`;
+  n >= 1_000_000
+    ? `${(n / 1_000_000).toFixed(1)}M`
+    : n >= 1000
+      ? `${(n / 1000).toFixed(n >= 100_000 ? 0 : 1)}k`
+      : `${n}`;
 
 export const formatRupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;

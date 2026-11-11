@@ -31,11 +31,7 @@ export function Reveal({
     return () => io.disconnect();
   }, []);
   return (
-    <Tag
-      ref={ref as never}
-      className={`reveal ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
+    <Tag ref={ref as never} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
     </Tag>
   );

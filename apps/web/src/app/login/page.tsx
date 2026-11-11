@@ -113,7 +113,9 @@ function LoginForm() {
       {/* Progress: two real steps */}
       <div className="flex gap-1.5" aria-hidden>
         <span className="h-1.5 flex-1 rounded-full bg-coral" />
-        <span className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${step === 'code' ? 'bg-coral' : 'bg-ink/10'}`} />
+        <span
+          className={`h-1.5 flex-1 rounded-full transition-colors duration-500 ${step === 'code' ? 'bg-coral' : 'bg-ink/10'}`}
+        />
       </div>
 
       {step === 'phone' ? (
@@ -145,7 +147,8 @@ function LoginForm() {
             {busy ? <Dots /> : 'Send code'}
           </Button>
           <p className="text-center text-xs leading-relaxed text-ink-faint">
-            By continuing you agree to our terms and privacy policy. Your number is never shown to other people.
+            By continuing you agree to our terms and privacy policy. Your number is never shown to other
+            people.
           </p>
         </form>
       ) : (
@@ -189,9 +192,7 @@ export default function LoginPage() {
       aside={
         <div className="max-w-md">
           <FacesCluster />
-          <h2 className="mt-6 text-5xl font-extrabold leading-[1.02] tracking-[-0.03em]">
-            Good to see you.
-          </h2>
+          <h2 className="mt-6 text-5xl font-extrabold leading-[1.02] tracking-[-0.03em]">Good to see you.</h2>
           <p className="mt-4 text-lg leading-relaxed text-ink-soft">
             2,418 people are online in Kerala right now. Log in to meet one of them.
           </p>

@@ -29,7 +29,11 @@ function CtrlButton({
       aria-label={label}
       aria-pressed={on}
       className={`press grid h-16 w-16 place-items-center rounded-full transition-colors ${
-        danger ? 'bg-[#E5484D] text-white hover:bg-[#d13f44]' : on ? 'bg-white text-ink' : 'bg-white/15 text-white hover:bg-white/25'
+        danger
+          ? 'bg-[#E5484D] text-white hover:bg-[#d13f44]'
+          : on
+            ? 'bg-white text-ink'
+            : 'bg-white/15 text-white hover:bg-white/25'
       }`}
     >
       {children}
@@ -37,7 +41,8 @@ function CtrlButton({
   );
 }
 
-const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+const fmt = (s: number) =>
+  `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
 function CallScreen() {
   const params = useSearchParams();
@@ -112,7 +117,10 @@ function CallScreen() {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-ink text-white">
-      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${glow[hue]} to-transparent`} aria-hidden />
+      <div
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${glow[hue]} to-transparent`}
+        aria-hidden
+      />
 
       <header className="relative flex items-center justify-between px-5 pt-6">
         <span className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold tabular-nums">
@@ -123,7 +131,11 @@ function CallScreen() {
             {cost} coins used
           </span>
         )}
-        {support && <span className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold">Support, audio only</span>}
+        {support && (
+          <span className="rounded-full bg-white/10 px-3 py-1.5 text-sm font-semibold">
+            Support, audio only
+          </span>
+        )}
       </header>
 
       <main className="relative flex flex-1 flex-col items-center justify-center px-6 text-center">
@@ -131,11 +143,17 @@ function CallScreen() {
           {phase === 'ringing' && (
             <>
               <span className="absolute inset-0 rounded-full bg-white/20 animate-ripple" />
-              <span className="absolute inset-0 rounded-full bg-white/15 animate-ripple" style={{ animationDelay: '1.2s' }} />
+              <span
+                className="absolute inset-0 rounded-full bg-white/15 animate-ripple"
+                style={{ animationDelay: '1.2s' }}
+              />
             </>
           )}
           {phase === 'live' && !muted && (
-            <span className="absolute -inset-3 rounded-full border-2 border-white/30 animate-breathe" aria-hidden />
+            <span
+              className="absolute -inset-3 rounded-full border-2 border-white/30 animate-breathe"
+              aria-hidden
+            />
           )}
           <Avatar name={peer} hue={hue} size="xl" />
         </div>
@@ -153,10 +171,16 @@ function CallScreen() {
 
         {phase === 'ended' && (
           <div className="mt-8 flex gap-3">
-            <button onClick={() => router.back()} className="press h-12 rounded-full bg-white/15 px-6 font-semibold hover:bg-white/25">
+            <button
+              onClick={() => router.back()}
+              className="press h-12 rounded-full bg-white/15 px-6 font-semibold hover:bg-white/25"
+            >
               Back
             </button>
-            <button onClick={() => router.push('/home')} className="press h-12 rounded-full bg-coral px-6 font-semibold shadow-lift">
+            <button
+              onClick={() => router.push('/home')}
+              className="press h-12 rounded-full bg-coral px-6 font-semibold shadow-lift"
+            >
               Meet someone new
             </button>
           </div>
@@ -177,15 +201,35 @@ function CallScreen() {
       {phase !== 'ended' && (
         <footer className="relative flex justify-center gap-4 pb-10">
           <CtrlButton label={muted ? 'Unmute' : 'Mute'} on={muted} onClick={() => setMuted((m) => !m)}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden
+            >
               <rect x="9" y="3" width="6" height="11" rx="3" />
               <path d="M5 11a7 7 0 0 0 14 0M12 18v3" />
               {muted && <path d="M4 4l16 16" />}
             </svg>
           </CtrlButton>
           {videoAllowed && (
-            <CtrlButton label={camOn ? 'Turn camera off' : 'Turn camera on'} on={!camOn} onClick={() => setCamOn((c) => !c)}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <CtrlButton
+              label={camOn ? 'Turn camera off' : 'Turn camera on'}
+              on={!camOn}
+              onClick={() => setCamOn((c) => !c)}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden
+              >
                 <rect x="3" y="6" width="13" height="12" rx="2" />
                 <path d="M16 10l5-3v10l-5-3" />
                 {!camOn && <path d="M3 3l18 18" />}

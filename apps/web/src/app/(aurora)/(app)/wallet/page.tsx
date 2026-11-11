@@ -22,7 +22,13 @@ export default function WalletPage() {
       const added = pack.coins + pack.bonus;
       setCoins((c) => c + added);
       setHistory((h) => [
-        { id: `x${Date.now()}`, label: 'Added coins', detail: `${pack.coins} pack${pack.bonus ? ` + ${pack.bonus} bonus` : ''}`, amount: added, when: 'Just now' },
+        {
+          id: `x${Date.now()}`,
+          label: 'Added coins',
+          detail: `${pack.coins} pack${pack.bonus ? ` + ${pack.bonus} bonus` : ''}`,
+          amount: added,
+          when: 'Just now',
+        },
         ...h,
       ]);
       setPaying(false);
@@ -63,16 +69,26 @@ export default function WalletPage() {
               <label
                 key={p.id}
                 className={`press relative cursor-pointer rounded-[1.5rem] border-2 p-4 transition-colors ${
-                  on ? 'border-coral bg-coral-wash' : 'glass border-transparent shadow-glass hover:bg-white/90'
+                  on
+                    ? 'border-coral bg-coral-wash'
+                    : 'glass border-transparent shadow-glass hover:bg-white/90'
                 }`}
               >
-                <input type="radio" name="pack" className="sr-only" checked={on} onChange={() => setPackId(p.id)} />
+                <input
+                  type="radio"
+                  name="pack"
+                  className="sr-only"
+                  checked={on}
+                  onChange={() => setPackId(p.id)}
+                />
                 {p.bonus > 0 && (
                   <span className="absolute right-3 top-3 rounded-full bg-mint px-2 py-0.5 text-[11px] font-bold">
                     +{p.bonus}
                   </span>
                 )}
-                <span className="block text-2xl font-extrabold tabular-nums">{p.coins.toLocaleString('en-IN')}</span>
+                <span className="block text-2xl font-extrabold tabular-nums">
+                  {p.coins.toLocaleString('en-IN')}
+                </span>
                 <span className="text-sm text-ink-soft">{formatRupees(p.price)}</span>
               </label>
             );
@@ -94,7 +110,9 @@ export default function WalletPage() {
                   {t.detail}, {t.when}
                 </p>
               </div>
-              <span className={`shrink-0 font-bold tabular-nums ${t.amount > 0 ? 'text-emerald-600' : 'text-ink'}`}>
+              <span
+                className={`shrink-0 font-bold tabular-nums ${t.amount > 0 ? 'text-emerald-600' : 'text-ink'}`}
+              >
                 {t.amount > 0 ? '+' : '−'}
                 {Math.abs(t.amount).toLocaleString('en-IN')}
               </span>

@@ -39,7 +39,6 @@ function useStored<T>(key: string, fallback: T) {
     const sync = () => setValue(read(key, fallback));
     window.addEventListener(`aurora:${key}`, sync);
     return () => window.removeEventListener(`aurora:${key}`, sync);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
   const set = useCallback(
     (next: T | ((prev: T) => T)) => {
@@ -47,7 +46,6 @@ function useStored<T>(key: string, fallback: T) {
       setValue(resolved);
       write(key, resolved);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [key],
   );
   return [value, set] as const;

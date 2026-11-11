@@ -65,7 +65,10 @@ export function AuthField({ label, hint, children }: { label: string; hint?: str
 export function AuthError({ children }: { children?: ReactNode }) {
   if (!children) return null;
   return (
-    <p role="alert" className="animate-rise rounded-2xl bg-coral-wash px-4 py-3 text-sm font-medium text-coral-deep">
+    <p
+      role="alert"
+      className="animate-rise rounded-2xl bg-coral-wash px-4 py-3 text-sm font-medium text-coral-deep"
+    >
       {children}
     </p>
   );

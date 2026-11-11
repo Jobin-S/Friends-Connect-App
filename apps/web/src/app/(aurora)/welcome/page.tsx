@@ -7,8 +7,14 @@ import { celebrities, events, formatCount, formatRupees } from '@/data/aurora-mo
 
 const steps = [
   { title: 'Tap Connect', body: 'Pick audio or video. We find someone who is online and looking to talk.' },
-  { title: 'Say hello', body: 'You both see a first name and shared interests. Nothing else until you share it.' },
-  { title: 'Stay or skip', body: 'Keep the conversation going, or skip to the next person. No awkward goodbyes.' },
+  {
+    title: 'Say hello',
+    body: 'You both see a first name and shared interests. Nothing else until you share it.',
+  },
+  {
+    title: 'Stay or skip',
+    body: 'Keep the conversation going, or skip to the next person. No awkward goodbyes.',
+  },
 ];
 
 export default function WelcomePage() {
@@ -25,10 +31,16 @@ export default function WelcomePage() {
           Friends Connect
         </span>
         <nav className="flex items-center gap-1 text-sm font-semibold" aria-label="Site">
-          <Link href="/celebrities" className="hidden rounded-full px-4 py-2 text-ink-soft hover:text-ink sm:block">
+          <Link
+            href="/celebrities"
+            className="hidden rounded-full px-4 py-2 text-ink-soft hover:text-ink sm:block"
+          >
             Stars
           </Link>
-          <Link href="/events" className="hidden rounded-full px-4 py-2 text-ink-soft hover:text-ink sm:block">
+          <Link
+            href="/events"
+            className="hidden rounded-full px-4 py-2 text-ink-soft hover:text-ink sm:block"
+          >
             Events
           </Link>
           <ButtonLink href="/login" variant="quiet">
@@ -96,7 +108,9 @@ export default function WelcomePage() {
       <section className="mx-auto max-w-6xl px-5 py-16">
         <Reveal className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">Call the people you follow.</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
+              Call the people you follow.
+            </h2>
             <p className="mt-3 max-w-md text-ink-soft">
               Verified singers, athletes, chefs and comics take calls by the minute, paid with coins.
             </p>
@@ -115,9 +129,7 @@ export default function WelcomePage() {
                 <Avatar name={c.name} hue={c.hue} size="lg" status={c.status} />
                 <p className="mt-6 font-bold leading-tight">{c.name}</p>
                 <p className="text-sm text-ink-soft">{c.craft}</p>
-                <p className="mt-4 text-sm font-semibold">
-                  {c.audioRate} coins a minute
-                </p>
+                <p className="mt-4 text-sm font-semibold">{c.audioRate} coins a minute</p>
               </Link>
             </Reveal>
           ))}
@@ -128,15 +140,22 @@ export default function WelcomePage() {
       <section className="mx-auto max-w-6xl px-5 py-16">
         <Reveal>
           <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">Then meet in person.</h2>
-          <p className="mt-3 max-w-md text-ink-soft">Gigs, food walks and screenings near you, booked in the app.</p>
+          <p className="mt-3 max-w-md text-ink-soft">
+            Gigs, food walks and screenings near you, booked in the app.
+          </p>
         </Reveal>
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {upcoming.map((e, i) => {
             const d = new Date(e.date);
             return (
               <Reveal key={e.id} delay={i * 80}>
-                <Link href={`/events/${e.id}`} className="press glass flex gap-4 rounded-[1.75rem] p-4 shadow-glass">
-                  <div className={`grid w-16 shrink-0 place-items-center rounded-2xl py-3 text-center ${hueSurface[e.hue]}`}>
+                <Link
+                  href={`/events/${e.id}`}
+                  className="press glass flex gap-4 rounded-[1.75rem] p-4 shadow-glass"
+                >
+                  <div
+                    className={`grid w-16 shrink-0 place-items-center rounded-2xl py-3 text-center ${hueSurface[e.hue]}`}
+                  >
                     <span className="text-2xl font-extrabold leading-none">{d.getDate()}</span>
                     <span className="text-xs font-semibold text-ink-soft">
                       {d.toLocaleString('en-IN', { month: 'short' })}
@@ -145,7 +164,9 @@ export default function WelcomePage() {
                   <div className="min-w-0">
                     <p className="truncate font-bold">{e.title}</p>
                     <p className="truncate text-sm text-ink-soft">{e.venue}</p>
-                    <p className="mt-2 text-sm font-semibold">From {formatRupees(Math.min(...e.tiers.map((t) => t.price)))}</p>
+                    <p className="mt-2 text-sm font-semibold">
+                      From {formatRupees(Math.min(...e.tiers.map((t) => t.price)))}
+                    </p>
                   </div>
                 </Link>
               </Reveal>
@@ -160,23 +181,33 @@ export default function WelcomePage() {
           <div>
             <h2 className="text-3xl font-extrabold tracking-tight">You decide what people see.</h2>
             <p className="mt-4 max-w-md leading-relaxed text-white/70">
-              Your phone number stays private. Report or block anyone in one tap, and a real person on our support
-              team reviews every report.
+              Your phone number stays private. Report or block anyone in one tap, and a real person on our
+              support team reviews every report.
             </p>
           </div>
           <ul className="grid gap-3 self-center text-white/90">
-            {['Phone number never shown to others', 'Video stays off until you turn it on', 'Support by chat or voice, 7 days a week'].map(
-              (t) => (
-                <li key={t} className="flex items-center gap-3">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-mint text-ink">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
-                      <path d="M5 12l5 5L20 7" />
-                    </svg>
-                  </span>
-                  {t}
-                </li>
-              ),
-            )}
+            {[
+              'Phone number never shown to others',
+              'Video stays off until you turn it on',
+              'Support by chat or voice, 7 days a week',
+            ].map((t) => (
+              <li key={t} className="flex items-center gap-3">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-mint text-ink">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    aria-hidden
+                  >
+                    <path d="M5 12l5 5L20 7" />
+                  </svg>
+                </span>
+                {t}
+              </li>
+            ))}
           </ul>
         </Reveal>
       </section>
@@ -188,7 +219,8 @@ export default function WelcomePage() {
             Someone nearby is waiting to talk.
           </h2>
           <p className="mt-4 text-ink-soft">
-            {formatCount(celebrities.reduce((a, c) => a + c.followers, 0))} people follow our stars. Join with your phone number.
+            {formatCount(celebrities.reduce((a, c) => a + c.followers, 0))} people follow our stars. Join with
+            your phone number.
           </p>
           <div className="mt-8 flex justify-center">
             <ButtonLink href="/login" size="lg">
@@ -202,9 +234,15 @@ export default function WelcomePage() {
         <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-5 py-8 text-sm text-ink-soft">
           <span>© 2026 Friends Connect</span>
           <span className="flex gap-5">
-            <Link href="/support" className="hover:text-ink">Help</Link>
-            <Link href="/events" className="hover:text-ink">Events</Link>
-            <Link href="/celebrities" className="hover:text-ink">Stars</Link>
+            <Link href="/support" className="hover:text-ink">
+              Help
+            </Link>
+            <Link href="/events" className="hover:text-ink">
+              Events
+            </Link>
+            <Link href="/celebrities" className="hover:text-ink">
+              Stars
+            </Link>
           </span>
         </div>
       </footer>

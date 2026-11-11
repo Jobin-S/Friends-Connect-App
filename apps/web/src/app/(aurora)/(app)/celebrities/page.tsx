@@ -36,10 +36,21 @@ export default function CelebritiesPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Stars</h1>
-          <p className="mt-2 text-ink-soft">Verified people who take calls. Rates are per minute, in coins.</p>
+          <p className="mt-2 text-ink-soft">
+            Verified people who take calls. Rates are per minute, in coins.
+          </p>
         </div>
         <label className="glass flex h-11 w-full items-center gap-2 rounded-full px-4 shadow-glass sm:w-72">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-faint" aria-hidden>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="text-ink-faint"
+            aria-hidden
+          >
             <circle cx="11" cy="11" r="7" />
             <path d="M20 20l-3.5-3.5" />
           </svg>
@@ -60,7 +71,9 @@ export default function CelebritiesPage() {
             onClick={() => setFilter(f)}
             aria-pressed={filter === f}
             className={`press shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-              filter === f ? 'border-ink bg-ink text-white' : 'border-line bg-white/50 text-ink-soft hover:text-ink'
+              filter === f
+                ? 'border-ink bg-ink text-white'
+                : 'border-line bg-white/50 text-ink-soft hover:text-ink'
             }`}
           >
             {f}
@@ -71,8 +84,16 @@ export default function CelebritiesPage() {
       {list.length === 0 ? (
         <div className="glass mt-10 rounded-[2rem] p-10 text-center shadow-glass">
           <p className="font-bold">No stars match that search.</p>
-          <p className="mt-1 text-sm text-ink-soft">Try a different name, or clear the filter to see everyone.</p>
-          <button onClick={() => { setQ(''); setFilter('Everyone'); }} className="mt-4 font-semibold text-coral-deep hover:underline">
+          <p className="mt-1 text-sm text-ink-soft">
+            Try a different name, or clear the filter to see everyone.
+          </p>
+          <button
+            onClick={() => {
+              setQ('');
+              setFilter('Everyone');
+            }}
+            className="mt-4 font-semibold text-coral-deep hover:underline"
+          >
             Clear search
           </button>
         </div>
@@ -89,12 +110,23 @@ export default function CelebritiesPage() {
                   <div className="min-w-0 pb-1">
                     <p className="flex items-center gap-1.5 font-bold leading-tight">
                       {c.name}
-                      <svg width="16" height="16" viewBox="0 0 24 24" className="text-coral-deep" aria-label="Verified">
-                        <path fill="currentColor" d="M12 2l2.4 2.1 3.2-.3.9 3.1 2.8 1.6-1.2 3 1.2 3-2.8 1.6-.9 3.1-3.2-.3L12 22l-2.4-2.1-3.2.3-.9-3.1-2.8-1.6 1.2-3-1.2-3 2.8-1.6.9-3.1 3.2.3z" />
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        className="text-coral-deep"
+                        aria-label="Verified"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M12 2l2.4 2.1 3.2-.3.9 3.1 2.8 1.6-1.2 3 1.2 3-2.8 1.6-.9 3.1-3.2-.3L12 22l-2.4-2.1-3.2.3-.9-3.1-2.8-1.6 1.2-3-1.2-3 2.8-1.6.9-3.1 3.2.3z"
+                        />
                         <path d="M8 12l3 3 5-6" stroke="white" strokeWidth="2" fill="none" />
                       </svg>
                     </p>
-                    <p className="text-sm text-ink-soft">{c.craft}, {c.city}</p>
+                    <p className="text-sm text-ink-soft">
+                      {c.craft}, {c.city}
+                    </p>
                   </div>
                 </div>
                 <div className="flex flex-1 items-center justify-between px-4 py-4">

@@ -3,20 +3,37 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth';
+import { ApplicationNotice } from '@/components/ui/ApplicationNotice';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { interests, recentChats } from '@/data/aurora-mock';
 import { useCoins, useTickets } from '@/data/aurora-store';
 
-function Toggle({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (v: boolean) => void }) {
+function Toggle({
+  label,
+  hint,
+  on,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  on: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4 py-4">
       <span>
         <span className="block font-semibold">{label}</span>
         <span className="text-sm text-ink-soft">{hint}</span>
       </span>
-      <input type="checkbox" role="switch" checked={on} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+      <input
+        type="checkbox"
+        role="switch"
+        checked={on}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
       <span
         aria-hidden
         className={`relative h-7 w-12 shrink-0 rounded-full transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-coral ${
@@ -40,10 +57,13 @@ export default function ProfilePage() {
   const [tickets] = useTickets();
   const [name, setName] = useState(user?.displayName ?? '');
   const [leaving, setLeaving] = useState(false);
-  const app = user?.latestApplication;
-  const roleLabel = app?.requestedRole === 'ORG' ? 'organizer' : 'star';
   const [mine, setMine] = useState(['Music', 'Films', 'Startups']);
-  const [prefs, setPrefs] = useState({ showCity: true, videoOff: true, callAlerts: true, eventAlerts: false });
+  const [prefs, setPrefs] = useState({
+    showCity: true,
+    videoOff: true,
+    callAlerts: true,
+    eventAlerts: false,
+  });
   const set = (k: keyof typeof prefs) => (v: boolean) => setPrefs((p) => ({ ...p, [k]: v }));
 
   return (
@@ -55,17 +75,7 @@ export default function ProfilePage() {
           </div>
           <h1 className="mt-4 text-2xl font-extrabold tracking-tight">{name || 'You'}</h1>
           <p className="text-sm text-ink-soft">{user?.phoneNumber}</p>
-          {app && app.status !== 'APPROVED' && (
-            <p
-              className={`mt-4 rounded-2xl px-4 py-3 text-left text-sm ${
-                app.status === 'PENDING' ? 'bg-lilac/60' : 'bg-coral-wash'
-              }`}
-            >
-              {app.status === 'PENDING'
-                ? `Your ${roleLabel} application is being reviewed. We will let you know when it is approved.`
-                : `Your ${roleLabel} application was not approved${app.reviewNote ? `: ${app.reviewNote}` : '.'}`}
-            </p>
-          )}
+          <ApplicationNotice className="mt-4 text-left" />
           <dl className="mt-6 grid grid-cols-3 gap-2 text-center">
             {[
               ['Calls', recentChats.length + 21],
@@ -85,9 +95,22 @@ export default function ProfilePage() {
             ['/tickets', 'My tickets'],
             ['/support', 'Help and support'],
           ].map(([href, label]) => (
-            <Link key={href} href={href} className="flex items-center justify-between rounded-2xl px-4 py-3 font-semibold hover:bg-white/70">
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center justify-between rounded-2xl px-4 py-3 font-semibold hover:bg-white/70"
+            >
               {label}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-ink-faint" aria-hidden>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="text-ink-faint"
+                aria-hidden
+              >
                 <path d="M9 6l6 6-6 6" />
               </svg>
             </Link>
@@ -115,9 +138,13 @@ export default function ProfilePage() {
                 <button
                   key={i}
                   aria-pressed={on}
-                  onClick={() => setMine((m) => (on ? m.filter((x) => x !== i) : m.length < 5 ? [...m, i] : m))}
+                  onClick={() =>
+                    setMine((m) => (on ? m.filter((x) => x !== i) : m.length < 5 ? [...m, i] : m))
+                  }
                   className={`press rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-                    on ? 'border-ink bg-ink text-white' : 'border-line bg-white/50 text-ink-soft hover:text-ink'
+                    on
+                      ? 'border-ink bg-ink text-white'
+                      : 'border-line bg-white/50 text-ink-soft hover:text-ink'
                   }`}
                 >
                   {i}
@@ -134,16 +161,36 @@ export default function ProfilePage() {
         <section className="glass rounded-[2rem] px-6 py-2 shadow-glass">
           <h2 className="pt-4 text-xl font-bold">Privacy</h2>
           <div className="divide-y divide-line">
-            <Toggle label="Show my city" hint="Matches see the city you are in, never your exact location." on={prefs.showCity} onChange={set('showCity')} />
-            <Toggle label="Start calls with video off" hint="Turn your camera on when you are ready." on={prefs.videoOff} onChange={set('videoOff')} />
+            <Toggle
+              label="Show my city"
+              hint="Matches see the city you are in, never your exact location."
+              on={prefs.showCity}
+              onChange={set('showCity')}
+            />
+            <Toggle
+              label="Start calls with video off"
+              hint="Turn your camera on when you are ready."
+              on={prefs.videoOff}
+              onChange={set('videoOff')}
+            />
           </div>
         </section>
 
         <section className="glass rounded-[2rem] px-6 py-2 shadow-glass">
           <h2 className="pt-4 text-xl font-bold">Notifications</h2>
           <div className="divide-y divide-line">
-            <Toggle label="Incoming calls" hint="Ring this device when someone calls you." on={prefs.callAlerts} onChange={set('callAlerts')} />
-            <Toggle label="Events near me" hint="One message a week about what is on nearby." on={prefs.eventAlerts} onChange={set('eventAlerts')} />
+            <Toggle
+              label="Incoming calls"
+              hint="Ring this device when someone calls you."
+              on={prefs.callAlerts}
+              onChange={set('callAlerts')}
+            />
+            <Toggle
+              label="Events near me"
+              hint="One message a week about what is on nearby."
+              on={prefs.eventAlerts}
+              onChange={set('eventAlerts')}
+            />
           </div>
         </section>
 

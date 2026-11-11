@@ -17,7 +17,12 @@ const now = () => new Date().toLocaleTimeString('en-IN', { hour: 'numeric', minu
 
 export default function SupportPage() {
   const [msgs, setMsgs] = useState<Msg[]>([
-    { id: 1, from: 'agent', text: 'Hi, I am Priya from the support team. What can I help with today?', at: now() },
+    {
+      id: 1,
+      from: 'agent',
+      text: 'Hi, I am Priya from the support team. What can I help with today?',
+      at: now(),
+    },
   ]);
   const [text, setText] = useState('');
   const [typing, setTyping] = useState(false);
@@ -59,7 +64,15 @@ export default function SupportPage() {
           </div>
         </div>
         <ButtonLink href="/call?with=Priya&type=audio&hue=lilac&support=1" variant="quiet">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden
+          >
             <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2" />
           </svg>
           Call
@@ -68,14 +81,19 @@ export default function SupportPage() {
 
       <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5" aria-live="polite">
         {msgs.map((m) => (
-          <div key={m.id} className={`flex animate-rise ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}>
+          <div
+            key={m.id}
+            className={`flex animate-rise ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}
+          >
             <div
               className={`max-w-[80%] rounded-[1.4rem] px-4 py-2.5 ${
                 m.from === 'me' ? 'rounded-br-md bg-ink text-white' : 'rounded-bl-md bg-white text-ink'
               }`}
             >
               <p className="leading-relaxed">{m.text}</p>
-              <p className={`mt-1 text-[11px] ${m.from === 'me' ? 'text-white/50' : 'text-ink-faint'}`}>{m.at}</p>
+              <p className={`mt-1 text-[11px] ${m.from === 'me' ? 'text-white/50' : 'text-ink-faint'}`}>
+                {m.at}
+              </p>
             </div>
           </div>
         ))}
@@ -127,7 +145,15 @@ export default function SupportPage() {
           aria-label="Send message"
           className="press grid h-12 w-12 place-items-center rounded-full bg-coral text-white shadow-lift disabled:opacity-40"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            aria-hidden
+          >
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>
         </button>

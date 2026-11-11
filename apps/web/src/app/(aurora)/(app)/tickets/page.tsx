@@ -10,9 +10,16 @@ function CodeMark({ code }: { code: string }) {
   const size = 21;
   const cells = codeGrid(code, size);
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="h-28 w-28 rounded-lg bg-white p-1.5" role="img" aria-label={`Entry code ${code}`}>
+    <svg
+      viewBox={`0 0 ${size} ${size}`}
+      className="h-28 w-28 rounded-lg bg-white p-1.5"
+      role="img"
+      aria-label={`Entry code ${code}`}
+    >
       {cells.map((on, i) =>
-        on ? <rect key={i} x={i % size} y={Math.floor(i / size)} width="1" height="1" fill="#231C33" /> : null,
+        on ? (
+          <rect key={i} x={i % size} y={Math.floor(i / size)} width="1" height="1" fill="#231C33" />
+        ) : null,
       )}
     </svg>
   );
@@ -53,7 +60,13 @@ export default function TicketsPage() {
                     </div>
                     <div className="mt-6 text-sm">
                       <p className="font-semibold">
-                        {d.toLocaleString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+                        {d.toLocaleString('en-IN', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })}
                       </p>
                       <p className="text-ink-soft">
                         {t.qty} × {t.tierName}, {formatRupees(t.total)}

@@ -25,7 +25,10 @@ export default function EventsPage() {
           <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Events near you</h1>
           <p className="mt-2 text-ink-soft">Book a seat and your ticket shows up in the app.</p>
         </div>
-        <Link href="/tickets" className="glass press flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold shadow-glass">
+        <Link
+          href="/tickets"
+          className="glass press flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold shadow-glass"
+        >
           My tickets
           {tickets.length > 0 && (
             <span className="grid h-5 min-w-5 place-items-center rounded-full bg-coral px-1.5 text-xs text-white">
@@ -78,18 +81,26 @@ export default function EventsPage() {
             const low = e.tiers.reduce((a, t) => a + t.left, 0) < 20;
             return (
               <li key={e.id} className="animate-rise" style={{ animationDelay: `${i * 60}ms` }}>
-                <Link href={`/events/${e.id}`} className="press group block overflow-hidden rounded-[2rem] bg-white/70 shadow-glass ring-1 ring-white hover:bg-white">
+                <Link
+                  href={`/events/${e.id}`}
+                  className="press group block overflow-hidden rounded-[2rem] bg-white/70 shadow-glass ring-1 ring-white hover:bg-white"
+                >
                   <div className={`relative h-40 ${hueSurface[e.hue]}`}>
                     <div className="absolute left-5 top-5 rounded-2xl bg-white/80 px-3 py-2 text-center backdrop-blur">
                       <p className="text-2xl font-extrabold leading-none">{d.getDate()}</p>
-                      <p className="text-xs font-semibold text-ink-soft">{d.toLocaleString('en-IN', { month: 'short' })}</p>
+                      <p className="text-xs font-semibold text-ink-soft">
+                        {d.toLocaleString('en-IN', { month: 'short' })}
+                      </p>
                     </div>
                     {low && (
                       <span className="absolute right-5 top-5 rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white">
                         Few seats left
                       </span>
                     )}
-                    <div className="absolute -bottom-10 -right-6 h-40 w-40 rounded-full bg-white/40 transition-transform duration-500 group-hover:scale-110" aria-hidden />
+                    <div
+                      className="absolute -bottom-10 -right-6 h-40 w-40 rounded-full bg-white/40 transition-transform duration-500 group-hover:scale-110"
+                      aria-hidden
+                    />
                   </div>
                   <div className="p-5">
                     <p className="text-lg font-bold">{e.title}</p>
@@ -98,7 +109,8 @@ export default function EventsPage() {
                     </p>
                     <div className="mt-4 flex items-center justify-between text-sm">
                       <span className="text-ink-soft">
-                        {d.toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' })}, {e.distanceKm} km
+                        {d.toLocaleString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' })},{' '}
+                        {e.distanceKm} km
                       </span>
                       <span className="font-bold">From {formatRupees(from)}</span>
                     </div>

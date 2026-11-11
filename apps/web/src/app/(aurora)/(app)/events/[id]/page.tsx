@@ -47,8 +47,14 @@ export default function EventPage() {
       <div className="mt-4 grid gap-6 lg:grid-cols-[1fr_360px]">
         <section>
           <div className={`relative h-56 overflow-hidden rounded-[2.5rem] md:h-72 ${hueSurface[e.hue]}`}>
-            <div className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-white/40 animate-drift" aria-hidden />
-            <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/30 animate-drift-slow" aria-hidden />
+            <div
+              className="absolute -bottom-20 -left-10 h-72 w-72 rounded-full bg-white/40 animate-drift"
+              aria-hidden
+            />
+            <div
+              className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-white/30 animate-drift-slow"
+              aria-hidden
+            />
           </div>
           <h1 className="mt-6 text-3xl font-extrabold tracking-tight md:text-4xl">{e.title}</h1>
           <p className="mt-1 text-ink-soft">Hosted by {e.host}</p>
@@ -59,7 +65,9 @@ export default function EventPage() {
               <dd className="mt-1 font-bold">
                 {d.toLocaleString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
               </dd>
-              <dd className="text-sm text-ink-soft">{d.toLocaleString('en-IN', { hour: 'numeric', minute: '2-digit' })}</dd>
+              <dd className="text-sm text-ink-soft">
+                {d.toLocaleString('en-IN', { hour: 'numeric', minute: '2-digit' })}
+              </dd>
             </div>
             <div className="glass rounded-2xl p-4 shadow-glass">
               <dt className="text-xs font-semibold text-ink-soft">Where</dt>
@@ -84,7 +92,13 @@ export default function EventPage() {
                     on ? 'border-coral bg-coral-wash' : 'border-transparent bg-white/70 hover:bg-white'
                   }`}
                 >
-                  <input type="radio" name="tier" className="sr-only" checked={on} onChange={() => setTierId(t.id)} />
+                  <input
+                    type="radio"
+                    name="tier"
+                    className="sr-only"
+                    checked={on}
+                    onChange={() => setTierId(t.id)}
+                  />
                   <span>
                     <span className="block font-bold">{t.name}</span>
                     <span className="text-xs text-ink-soft">{t.left} left</span>
@@ -105,7 +119,9 @@ export default function EventPage() {
               >
                 −
               </button>
-              <span className="w-8 text-center font-bold" aria-live="polite">{qty}</span>
+              <span className="w-8 text-center font-bold" aria-live="polite">
+                {qty}
+              </span>
               <button
                 onClick={() => setQty((q) => Math.min(Math.min(6, tier.left), q + 1))}
                 className="press grid h-9 w-9 place-items-center rounded-full text-lg font-bold hover:bg-ink/5"

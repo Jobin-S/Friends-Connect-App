@@ -8,15 +8,33 @@ import { Avatar } from './Avatar';
 
 const nav = [
   { href: '/home', label: 'Match', icon: 'M12 3a9 9 0 1 0 9 9M12 8a4 4 0 1 0 4 4M12 12h.01' },
-  { href: '/celebrities', label: 'Stars', icon: 'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z' },
+  {
+    href: '/celebrities',
+    label: 'Stars',
+    icon: 'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',
+  },
   { href: '/events', label: 'Events', icon: 'M4 7h16v12H4zM4 11h16M9 3v4M15 3v4' },
-  { href: '/wallet', label: 'Wallet', icon: 'M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H3zM3 7l12-4v4M16 13.5h.01' },
+  {
+    href: '/wallet',
+    label: 'Wallet',
+    icon: 'M3 7h15a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H3zM3 7l12-4v4M16 13.5h.01',
+  },
   { href: '/profile', label: 'You', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0' },
 ];
 
 function Icon({ d }: { d: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d={d} />
     </svg>
   );
@@ -26,7 +44,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = usePathname() ?? '';
   const { user } = useAuth();
   const me = user?.displayName || 'You';
-  const active = (href: string) => path === href || path.startsWith(href + '/') || (href === '/events' && path.startsWith('/tickets'));
+  const active = (href: string) =>
+    path === href || path.startsWith(href + '/') || (href === '/events' && path.startsWith('/tickets'));
 
   return (
     <div className="min-h-screen pb-28 md:pb-12">
