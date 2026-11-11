@@ -16,6 +16,8 @@ export default tseslint.config(
       // The existing code uses `any` in places; tighten this as modules are rewritten.
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // `import x = require('x')` is the right way to load CommonJS modules without esModuleInterop.
+      '@typescript-eslint/no-require-imports': ['error', { allowAsImport: true }],
     },
   },
   {

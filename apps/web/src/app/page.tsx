@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { RequireAuth, useAuth } from '../lib/auth';
 import { WebRtcCallClient } from '../lib/webrtc-client';
 
 type UserRole = 'NORMAL' | 'CELEBRITY' | 'ORG' | 'SUPPORT' | 'SUPER_ADMIN';
@@ -78,13 +80,59 @@ interface ActiveCallSession {
   muted: boolean;
 }
 
-export default function FriendsConnectApp() {
-  // 1. Auth & Role State
-  const [activeRole, setActiveRole] = useState<UserRole>('NORMAL');
-  const [phoneInput, setPhoneInput] = useState('+91 98765 43210');
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpInput, setOtpInput] = useState('123456');
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+export default function HomePage() {
+  return (
+    <RequireAuth>
+      <FriendsConnectApp />
+    </RequireAuth>
+  );
+}
+
+const ROLE_LABEL: Record<UserRole, string> = {
+  NORMAL: 'Normal user',
+  CELEBRITY: 'Celebrity',
+  ORG: 'Event organizer',
+  SUPPORT: 'Customer Care',
+  SUPER_ADMIN: 'Super Admin',
+};
+
+/** Pending / rejected celebrity or organizer application, shown to a user who is still NORMAL. */
+function ApplicationBanner() {
+  const { user, refreshUser } = useAuth();
+  const app = user?.latestApplication;
+  if (!user || !app || user.role !== 'NORMAL' || app.status === 'APPROVED') return null;
+  const what = app.requestedRole === 'CELEBRITY' ? 'celebrity' : 'event organizer';
+  return (
+    <div
+      className={`max-w-7xl mx-auto mt-4 mx-4 rounded-xl border px-4 py-3 text-sm flex flex-wrap items-center gap-3 ${
+        app.status === 'PENDING'
+          ? 'border-amber-500/40 bg-amber-500/10 text-amber-200'
+          : 'border-rose-500/40 bg-rose-500/10 text-rose-200'
+      }`}
+    >
+      {app.status === 'PENDING' ? (
+        <span>
+          Your {what} application is under review. Until it is approved you can use the app as a normal user.
+        </span>
+      ) : (
+        <span>
+          Your {what} application was not approved{app.reviewNote ? `: “${app.reviewNote}”` : '.'} You can
+          apply again later.
+        </span>
+      )}
+      {app.status === 'PENDING' && (
+        <button onClick={() => refreshUser()} className="ml-auto text-xs underline">
+          Check status
+        </button>
+      )}
+    </div>
+  );
+}
+
+function FriendsConnectApp() {
+  // 1. Auth & Role State — the view follows the logged-in user's real role.
+  const { user: authUser, logout } = useAuth();
+  const activeRole: UserRole = authUser!.role;
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // 2. Platform Data State
@@ -466,41 +514,34 @@ export default function FriendsConnectApp() {
             </div>
           </div>
 
-          {/* Role Switcher Bar */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
-            {(
-              [
-                { id: 'NORMAL', label: '1. Normal User' },
-                { id: 'CELEBRITY', label: '2. Celebrity Account' },
-                { id: 'ORG', label: '3. Organization (Events)' },
-                { id: 'SUPPORT', label: '4. Customer Care' },
-                { id: 'SUPER_ADMIN', label: '5. Super Admin' },
-              ] as Array<{ id: UserRole; label: string }>
-            ).map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveRole(tab.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  activeRole === tab.id
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                }`}
+          {/* Logged-in account */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="px-3 py-1.5 rounded-lg bg-blue-600/20 text-blue-200 border border-blue-500/30 font-semibold">
+              {ROLE_LABEL[activeRole]}
+            </span>
+            {activeRole === 'SUPER_ADMIN' && (
+              <Link
+                href="/admin/applications"
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200"
               >
-                {tab.label}
-              </button>
-            ))}
+                Applications & agents
+              </Link>
+            )}
           </div>
 
-          {/* Wallet & OTP Login Status */}
+          {/* Wallet & account */}
           <div className="flex items-center gap-3">
             <div className="px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
               🪙 {currentUser.coinBalance} Coins
             </div>
+            <span className="text-xs text-slate-300">
+              {authUser!.displayName} · {authUser!.phoneNumber}
+            </span>
             <button
-              onClick={() => setIsLoggedIn(!isLoggedIn)}
+              onClick={logout}
               className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700"
             >
-              {isLoggedIn ? `📱 ${currentUser.phoneNumber}` : 'Login via OTP'}
+              Log out
             </button>
           </div>
         </div>
@@ -513,52 +554,7 @@ export default function FriendsConnectApp() {
         </div>
       )}
 
-      {/* Mobile OTP Login Banner (if logged out) */}
-      {!isLoggedIn && (
-        <section className="max-w-md mx-auto my-12 p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
-          <h2 className="text-xl font-bold mb-2">Mobile Number OTP Login</h2>
-          <p className="text-xs text-slate-400 mb-4">
-            Sign in or create your Friends Connect account using your mobile number and 6-digit OTP.
-          </p>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Mobile Number</label>
-              <input
-                type="tel"
-                value={phoneInput}
-                onChange={(e) => setPhoneInput(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm"
-              />
-            </div>
-            {otpSent && (
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Enter 6-Digit OTP</label>
-                <input
-                  type="text"
-                  value={otpInput}
-                  onChange={(e) => setOtpInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-sm tracking-widest"
-                />
-              </div>
-            )}
-            <button
-              onClick={() => {
-                if (!otpSent) {
-                  setOtpSent(true);
-                  notify('OTP 123456 sent to your mobile number!');
-                } else {
-                  setIsLoggedIn(true);
-                  setOtpSent(false);
-                  notify('Logged in successfully via Mobile OTP!');
-                }
-              }}
-              className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold text-sm"
-            >
-              {otpSent ? 'Verify OTP & Continue' : 'Send OTP'}
-            </button>
-          </div>
-        </section>
-      )}
+      <ApplicationBanner />
 
       {/* Main Content Area by Active Role */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-8">

@@ -19,9 +19,17 @@ jobs:
         options: >-
           --health-cmd "pg_isready -U fc_admin -d friends_connect"
           --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7.2-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://fc_admin:fc_secret_pass@localhost:5432/friends_connect?schema=public
       DIRECT_URL: postgresql://fc_admin:fc_secret_pass@localhost:5432/friends_connect?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-only-secret-not-used-anywhere-else-0123456789
+      OTP_DEV_CODE: '123456'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,4 +45,6 @@ jobs:
         run: |
           npm run db:deploy
           npm run db:seed
+      - name: API tests
+        run: npm test -w @friends-connect/api
       - run: npm run build

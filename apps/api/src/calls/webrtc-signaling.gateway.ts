@@ -7,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { isVideoAllowed as callTypeAllowsVideo } from '@friends-connect/contracts';
+import type { SocketData } from '../auth/socket-auth.adapter';
 import { CallSessionMode } from './rtc-token.service';
 
 export interface SdpPayload {
@@ -38,7 +39,7 @@ export interface IceCandidatePayload {
  * - Trickle ICE Candidate relay
  * - Camera / Microphone track state changes
  */
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway()
 export class WebRtcSignalingGateway {
   @WebSocketServer()
   server!: Server;
@@ -59,9 +60,9 @@ export class WebRtcSignalingGateway {
     // Notify existing peer in the room so they can create and send an RTCPeerConnection SDP Offer
     client.to(payload.roomName).emit('webrtc_peer_joined', {
       roomName: payload.roomName,
-      peerId: payload.userId,
+      peerId: (client.data as SocketData).user.id,
       peerSocketId: client.id,
-      displayName: payload.displayName,
+      displayName: (client.data as SocketData).user.displayName,
       callMode: payload.callMode,
     });
 
@@ -78,7 +79,7 @@ export class WebRtcSignalingGateway {
 
     client.to(payload.roomName).emit('webrtc_sdp_offer', {
       roomName: payload.roomName,
-      senderId: payload.senderId,
+      senderId: (client.data as SocketData).user.id,
       senderSocketId: client.id,
       callMode: payload.callMode,
       sdp: {
@@ -96,7 +97,7 @@ export class WebRtcSignalingGateway {
 
     client.to(payload.roomName).emit('webrtc_sdp_answer', {
       roomName: payload.roomName,
-      senderId: payload.senderId,
+      senderId: (client.data as SocketData).user.id,
       senderSocketId: client.id,
       callMode: payload.callMode,
       sdp: {
@@ -112,7 +113,7 @@ export class WebRtcSignalingGateway {
   handleIceCandidate(@MessageBody() payload: IceCandidatePayload, @ConnectedSocket() client: Socket) {
     client.to(payload.roomName).emit('webrtc_ice_candidate', {
       roomName: payload.roomName,
-      senderId: payload.senderId,
+      senderId: (client.data as SocketData).user.id,
       candidate: payload.candidate,
     });
 
@@ -135,7 +136,7 @@ export class WebRtcSignalingGateway {
     const safeVideoEnabled = payload.callMode === 'SUPPORT_AUDIO' ? false : payload.videoEnabled;
 
     client.to(payload.roomName).emit('webrtc_media_state', {
-      userId: payload.userId,
+      userId: (client.data as SocketData).user.id,
       audioMuted: payload.audioMuted,
       videoEnabled: safeVideoEnabled,
     });
@@ -149,7 +150,7 @@ export class WebRtcSignalingGateway {
     client.leave(payload.roomName);
     client.to(payload.roomName).emit('webrtc_peer_left', {
       roomName: payload.roomName,
-      userId: payload.userId,
+      userId: (client.data as SocketData).user.id,
     });
     return { left: true };
   }

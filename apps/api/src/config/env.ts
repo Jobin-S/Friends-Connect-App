@@ -26,6 +26,23 @@ const envSchema = z.object({
   TURN_USERNAME: z.string().optional(),
   TURN_PASSWORD: z.string().optional(),
   SIGNALING_URL: z.string().url().default('http://localhost:4000'),
+
+  /** Signs access and registration tokens. Generate with: openssl rand -base64 48 */
+  JWT_SECRET: z.string().min(32, 'must be at least 32 characters'),
+  ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
+  /** Fixed OTP for development until a real SMS provider is added. Never allowed in production. */
+  OTP_DEV_CODE: z
+    .string()
+    .regex(/^\d{6}$/)
+    .optional(),
+  /** Default country for phone numbers typed without a +country code (ISO 3166 alpha-2). */
+  DEFAULT_PHONE_REGION: z.string().length(2).default('IN'),
+  /** Set the refresh cookie with the Secure flag (true behind HTTPS). */
+  COOKIE_SECURE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -39,6 +56,9 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     );
   }
   if (parsed.data.NODE_ENV === 'production') {
+    if (parsed.data.OTP_DEV_CODE) {
+      throw new Error('OTP_DEV_CODE must not be set in production.');
+    }
     if (parsed.data.LIVEKIT_API_KEY === 'devkey' || parsed.data.LIVEKIT_API_SECRET === 'secret') {
       throw new Error('LIVEKIT_API_KEY / LIVEKIT_API_SECRET must be set to real values in production.');
     }

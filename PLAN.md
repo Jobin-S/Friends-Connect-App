@@ -1,6 +1,6 @@
 # Friends Connect — Product Build Plan
 
-Status: **approved. Phase 0 done (2026-11-10). Next: Phase 1, waiting for go-ahead.** Each phase is reviewed before the next starts.
+Status: **Phase 0 done (2026-11-10). Phase 1 (auth) implemented (2026-11-11), awaiting review. Next: Phase 2 (calling).** Each phase is reviewed before the next starts.
 
 **Decided:**
 - Database: PostgreSQL (+ PostGIS) with Redis.
@@ -100,7 +100,7 @@ Each phase ends with something you can run and test. Estimates assume one engine
 - `docker compose up` brings up Postgres, Redis and LiveKit; `npm run dev` starts the API and web app.
 - Prisma migrations and a seed script with the demo accounts.
 
-### Phase 1 — Accounts and auth (≈ 1 week)
+### Phase 1 — Accounts and auth ✅ implemented (detailed plan: phone OTP, registration with admin-approved celebrity/organizer roles, admin-created support agents)
 - OTP send and verify, using a fake SMS sender in dev that logs the code.
 - JWT access and refresh tokens; logout and refresh endpoints.
 - Profile; role assignment (only an admin can create a celebrity, org or support account).

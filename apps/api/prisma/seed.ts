@@ -163,11 +163,46 @@ async function main() {
     },
   });
 
+  // --- Pending role applications (to test admin approval) -------------------------
+  // These users stay NORMAL until an admin approves them.
+  const pendingApplicants = [
+    {
+      phone: '+919999900003',
+      name: 'Nivin Rajan',
+      requestedRole: 'CELEBRITY' as const,
+      details: {
+        category: 'Stand-up Comedy',
+        bio: 'Malayalam stand-up comedian with 200k followers. Wants to host fan calls.',
+        socialUrl: 'https://instagram.com/example',
+      },
+    },
+    {
+      phone: '+919888800002',
+      name: 'Malabar Events Co',
+      requestedRole: 'ORG' as const,
+      details: {
+        companyName: 'Malabar Events Co LLP',
+        registrationNo: 'DEV-GST-0002',
+        websiteUrl: 'https://example.com',
+      },
+    },
+  ];
+  for (const a of pendingApplicants) {
+    const user = await upsertUser(a.phone, a.name, 'NORMAL', 100);
+    await prisma.roleApplication.deleteMany({ where: { userId: user.id } });
+    await prisma.celebrityProfile.deleteMany({ where: { userId: user.id } });
+    await prisma.organizationProfile.deleteMany({ where: { userId: user.id } });
+    await prisma.roleApplication.create({
+      data: { userId: user.id, requestedRole: a.requestedRole, details: a.details },
+    });
+  }
+
   const counts = {
     users: await prisma.user.count(),
     celebrities: await prisma.celebrityProfile.count(),
     events: await prisma.event.count(),
     supportTickets: await prisma.supportTicket.count(),
+    pendingApplications: await prisma.roleApplication.count({ where: { status: 'PENDING' } }),
   };
   console.log('Seed complete:', counts);
 }

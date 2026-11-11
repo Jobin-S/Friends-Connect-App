@@ -6,6 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import type { SocketData } from '../auth/socket-auth.adapter';
 import { StoreService } from '../common/store.service';
 import { RtcTokenService } from '../calls/rtc-token.service';
 
@@ -17,7 +18,7 @@ interface QueueEntry {
   joinedAt: number;
 }
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway()
 export class MatchmakingGateway {
   @WebSocketServer()
   server!: Server;
@@ -32,13 +33,11 @@ export class MatchmakingGateway {
 
   @SubscribeMessage('join_random_queue')
   async handleJoinQueue(
-    @MessageBody() payload: { userId: string; mode: 'AUDIO' | 'VIDEO' },
+    @MessageBody() payload: { mode: 'AUDIO' | 'VIDEO' },
     @ConnectedSocket() client: Socket,
   ) {
-    const user = this.store.users.get(payload.userId);
-    if (!user) {
-      return { error: 'User not found' };
-    }
+    // Identity comes from the authenticated socket, never from the message.
+    const user = (client.data as SocketData).user;
     if (user.status !== 'ACTIVE') {
       return { error: `Account is ${user.status}. Cannot join matchmaking.` };
     }
@@ -52,14 +51,14 @@ export class MatchmakingGateway {
     const targetQueue = payload.mode === 'VIDEO' ? this.videoQueue : this.audioQueue;
 
     // Remove existing entry for same user if present
-    const existingIdx = targetQueue.findIndex((q) => q.userId === payload.userId);
+    const existingIdx = targetQueue.findIndex((q) => q.userId === user.id);
     if (existingIdx !== -1) {
       targetQueue.splice(existingIdx, 1);
     }
 
     // Find a compatible peer not blocked
     const peerIdx = targetQueue.findIndex(
-      (candidate) => candidate.userId !== payload.userId && !this.isBlocked(payload.userId, candidate.userId),
+      (candidate) => candidate.userId !== user.id && !this.isBlocked(user.id, candidate.userId),
     );
 
     if (peerIdx !== -1) {
@@ -114,14 +113,19 @@ export class MatchmakingGateway {
   }
 
   @SubscribeMessage('leave_random_queue')
-  handleLeaveQueue(@MessageBody() payload: { userId: string }) {
-    this.audioQueue = this.audioQueue.filter((q) => q.userId !== payload.userId);
-    this.videoQueue = this.videoQueue.filter((q) => q.userId !== payload.userId);
+  handleLeaveQueue(@ConnectedSocket() client: Socket) {
+    const user = (client.data as SocketData).user;
+    this.audioQueue = this.audioQueue.filter((q) => q.userId !== user.id);
+    this.videoQueue = this.videoQueue.filter((q) => q.userId !== user.id);
     return { status: 'LEFT_QUEUE' };
   }
 
   @SubscribeMessage('report_and_block_peer')
-  handleReportAndBlock(@MessageBody() payload: { reporterId: string; reportedId: string; reason: string }) {
+  handleReportAndBlock(
+    @MessageBody() body: { reportedId: string; reason: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const payload = { ...body, reporterId: (client.data as SocketData).user.id };
     const pairKey1 = `${payload.reporterId}:${payload.reportedId}`;
     const pairKey2 = `${payload.reportedId}:${payload.reporterId}`;
     this.store.blockedPairs.add(pairKey1);

@@ -3,22 +3,14 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { configureApp } from './app.setup';
 import { Env } from './config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const config = app.get<ConfigService<Env, true>>(ConfigService);
+  configureApp(app);
 
-  app.enableCors({
-    origin: config
-      .get('CORS_ORIGINS', { infer: true })
-      .split(',')
-      .map((o) => o.trim()),
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  });
-  app.enableShutdownHooks();
-
-  const port = config.get('PORT', { infer: true });
+  const port = app.get<ConfigService<Env, true>>(ConfigService).get('PORT', { infer: true });
   await app.listen(port);
   new Logger('Bootstrap').log(`Friends Connect API listening on http://localhost:${port}`);
 }

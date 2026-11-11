@@ -4,3 +4,4 @@ dist
 package-lock.json
 mobile
 *.md
+.claude

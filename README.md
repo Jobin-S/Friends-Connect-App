@@ -50,11 +50,24 @@ To check the setup, open http://localhost:4000/api/health. It should return `{"s
 | `npm run db:migrate` | Create a new migration after editing `schema.prisma` (interactive terminal) |
 | `npm run db:reset` | Drop, re-migrate and re-seed the local database |
 | `npm run db:studio` | Browse the database in Prisma Studio |
+| `npm test -w @friends-connect/api` | API end-to-end tests (needs `npm run infra:up`) |
 | `npm run infra:down` | Stop the Docker services |
 
 ### Seed accounts
 
-See [notes/demo-salvage.md](notes/demo-salvage.md#seed-accounts). Real OTP login arrives in Phase 1.
+Log in at http://localhost:3000/login with any of these numbers. In development the OTP is always **123456**; real SMS comes later.
+
+| Role | Phone |
+|---|---|
+| Normal user | +919876543210, +919876543211 |
+| Celebrity | +919999900001, +919999900002 |
+| Event organizer | +919888800001 |
+| Customer Care | +919777700001 |
+| Super Admin | +919000000001 |
+| Pending celebrity applicant | +919999900003 |
+| Pending organizer applicant | +919888800002 |
+
+A number that isn't registered goes to sign-up. Celebrity and organizer sign-ups need admin approval at `/admin/applications`.
 
 ## Hosted database (Supabase)
 

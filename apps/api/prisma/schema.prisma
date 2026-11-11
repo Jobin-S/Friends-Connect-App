@@ -72,6 +72,17 @@ enum SupportPriority {
   CELEBRITY_VIP
 }
 
+enum ApplicationRole {
+  CELEBRITY
+  ORG
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum SupportStatus {
   OPEN
   IN_PROGRESS
@@ -79,45 +90,48 @@ enum SupportStatus {
 }
 
 model User {
-  id                  String               @id @default(uuid()) @db.Uuid
-  phoneNumber         String               @unique @map("phone_number")
-  role                UserRole             @default(NORMAL)
-  displayName         String               @map("display_name")
-  avatarUrl           String?              @map("avatar_url")
-  status              AccountStatus        @default(ACTIVE)
+  id           String        @id @default(uuid()) @db.Uuid
+  phoneNumber  String        @unique @map("phone_number")
+  role         UserRole      @default(NORMAL)
+  displayName  String        @map("display_name")
+  avatarUrl    String?       @map("avatar_url")
+  status       AccountStatus @default(ACTIVE)
   /// Granular Super Admin restrictions, e.g. { "canRandomAudio": true, "canRandomVideo": true, "maxCallsPerDay": 50 }
-  restrictions        Json                 @default("{\"canRandomAudio\": true, \"canRandomVideo\": true, \"canCallCelebrities\": true, \"maxCallsPerDay\": 100}")
-  lastKnownLat        Float?               @map("last_known_lat")
-  lastKnownLng        Float?               @map("last_known_lng")
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @updatedAt @map("updated_at")
+  restrictions Json          @default("{\"canRandomAudio\": true, \"canRandomVideo\": true, \"canCallCelebrities\": true, \"maxCallsPerDay\": 100}")
+  lastKnownLat Float?        @map("last_known_lat")
+  lastKnownLng Float?        @map("last_known_lng")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  celebrityProfile    CelebrityProfile?
-  organizationProfile OrganizationProfile?
-  wallet              Wallet?
-  initiatedCalls      CallSession[]        @relation("CallerSessions")
-  receivedCalls       CallSession[]        @relation("ReceiverSessions")
-  eventBookings       EventBooking[]
-  openedTickets       SupportTicket[]      @relation("RequesterTickets")
-  assignedTickets     SupportTicket[]      @relation("AgentTickets")
+  celebrityProfile     CelebrityProfile?
+  organizationProfile  OrganizationProfile?
+  wallet               Wallet?
+  initiatedCalls       CallSession[]        @relation("CallerSessions")
+  receivedCalls        CallSession[]        @relation("ReceiverSessions")
+  eventBookings        EventBooking[]
+  openedTickets        SupportTicket[]      @relation("RequesterTickets")
+  assignedTickets      SupportTicket[]      @relation("AgentTickets")
+  roleApplications     RoleApplication[]    @relation("ApplicantApplications")
+  reviewedApplications RoleApplication[]    @relation("ReviewerApplications")
+  authSessions         AuthSession[]
 
   @@map("users")
 }
 
 model CelebrityProfile {
-  userId              String             @id @map("user_id") @db.Uuid
-  user                User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category            String
-  bio                 String
-  isVerified          Boolean            @default(false) @map("is_verified")
-  availability        AvailabilityStatus @default(OFFLINE)
-  allowAudioCalls     Boolean            @default(true) @map("allow_audio_calls")
-  allowVideoCalls     Boolean            @default(true) @map("allow_video_calls")
-  audioRateCoinsPerMin Int               @default(50) @map("audio_rate_coins_per_min")
-  videoRateCoinsPerMin Int               @default(120) @map("video_rate_coins_per_min")
-  followersCount      Int                @default(0) @map("followers_count")
+  userId               String             @id @map("user_id") @db.Uuid
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category             String
+  bio                  String
+  isVerified           Boolean            @default(false) @map("is_verified")
+  availability         AvailabilityStatus @default(OFFLINE)
+  allowAudioCalls      Boolean            @default(true) @map("allow_audio_calls")
+  allowVideoCalls      Boolean            @default(true) @map("allow_video_calls")
+  audioRateCoinsPerMin Int                @default(50) @map("audio_rate_coins_per_min")
+  videoRateCoinsPerMin Int                @default(120) @map("video_rate_coins_per_min")
+  followersCount       Int                @default(0) @map("followers_count")
 
-  mediaItems          CelebrityMedia[]
+  mediaItems CelebrityMedia[]
 
   @@map("celebrity_profiles")
 }
@@ -137,14 +151,14 @@ model CelebrityMedia {
 }
 
 model OrganizationProfile {
-  userId         String   @id @map("user_id") @db.Uuid
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  companyName    String   @map("company_name")
-  registrationNo String   @map("gst_or_reg_number")
-  isVerified     Boolean  @default(false) @map("is_verified")
-  websiteUrl     String?  @map("website_url")
+  userId         String  @id @map("user_id") @db.Uuid
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName    String  @map("company_name")
+  registrationNo String  @map("gst_or_reg_number")
+  isVerified     Boolean @default(false) @map("is_verified")
+  websiteUrl     String? @map("website_url")
 
-  events         Event[]
+  events Event[]
 
   @@map("organization_profiles")
 }
@@ -174,15 +188,15 @@ model Event {
 }
 
 model TicketTier {
-  id            String         @id @default(uuid()) @db.Uuid
-  eventId       String         @map("event_id") @db.Uuid
-  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id            String  @id @default(uuid()) @db.Uuid
+  eventId       String  @map("event_id") @db.Uuid
+  event         Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   name          String
-  priceFiat     Decimal        @map("price_fiat") @db.Decimal(10, 2)
-  totalCapacity Int            @map("total_capacity")
-  soldCount     Int            @default(0) @map("sold_count")
+  priceFiat     Decimal @map("price_fiat") @db.Decimal(10, 2)
+  totalCapacity Int     @map("total_capacity")
+  soldCount     Int     @default(0) @map("sold_count")
 
-  bookings      EventBooking[]
+  bookings EventBooking[]
 
   @@map("ticket_tiers")
 }
@@ -206,14 +220,14 @@ model EventBooking {
 }
 
 model Wallet {
-  userId          String              @id @map("user_id") @db.Uuid
-  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coinBalance     Int                 @default(0) @map("coin_balance")
-  earnedCoins     Int                 @default(0) @map("earned_coins")
-  isPremiumMember Boolean             @default(false) @map("is_premium_member")
-  updatedAt       DateTime            @updatedAt @map("updated_at")
+  userId          String   @id @map("user_id") @db.Uuid
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coinBalance     Int      @default(0) @map("coin_balance")
+  earnedCoins     Int      @default(0) @map("earned_coins")
+  isPremiumMember Boolean  @default(false) @map("is_premium_member")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  transactions    WalletTransaction[]
+  transactions WalletTransaction[]
 
   @@map("wallets")
 }
@@ -271,4 +285,44 @@ model SupportMessage {
   createdAt DateTime      @default(now()) @map("created_at")
 
   @@map("support_messages")
+}
+
+/// A request by a user to become a celebrity or event organizer. The user's role only changes when an admin approves.
+model RoleApplication {
+  id            String            @id @default(uuid()) @db.Uuid
+  userId        String            @map("user_id") @db.Uuid
+  user          User              @relation("ApplicantApplications", fields: [userId], references: [id], onDelete: Cascade)
+  requestedRole ApplicationRole   @map("requested_role")
+  status        ApplicationStatus @default(PENDING)
+  /// Celebrity: { category, bio, socialUrl? }  Organizer: { companyName, registrationNo, websiteUrl? }
+  details       Json
+  reviewNote    String?           @map("review_note")
+  reviewedById  String?           @map("reviewed_by_id") @db.Uuid
+  reviewedBy    User?             @relation("ReviewerApplications", fields: [reviewedById], references: [id])
+  createdAt     DateTime          @default(now()) @map("created_at")
+  reviewedAt    DateTime?         @map("reviewed_at")
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("role_applications")
+}
+
+/// One refresh-token session per device login. Only a hash of the token is stored.
+model AuthSession {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Groups all rotations of one login, so reuse of an old token can revoke the whole chain.
+  familyId     String    @map("family_id") @db.Uuid
+  tokenHash    String    @unique @map("token_hash")
+  userAgent    String?   @map("user_agent")
+  ipAddress    String?   @map("ip_address")
+  expiresAt    DateTime  @map("expires_at")
+  revokedAt    DateTime? @map("revoked_at")
+  replacedById String?   @map("replaced_by_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("auth_sessions")
 }

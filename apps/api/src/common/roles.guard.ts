@@ -1,6 +1,9 @@
-import { SetMetadata, CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, SetMetadata } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import type { AccountStatus, UserRole } from '@friends-connect/contracts';
+import { IS_PUBLIC_KEY } from '../auth/public.decorator';
 
-export type UserRole = 'NORMAL' | 'CELEBRITY' | 'ORG' | 'SUPPORT' | 'SUPER_ADMIN';
+export type { UserRole };
 
 export interface UserRestrictions {
   canRandomAudio: boolean;
@@ -14,38 +17,31 @@ export interface AuthenticatedUser {
   phoneNumber: string;
   role: UserRole;
   displayName: string;
-  status: 'ACTIVE' | 'BLOCKED' | 'RESTRICTED' | 'SUSPENDED';
+  status: AccountStatus;
   restrictions: UserRestrictions;
 }
 
 export const ROLES_KEY = 'roles';
+/** Limits a route to the given roles. SUPER_ADMIN always passes. */
 export const Roles = (...roles: UserRole[]) => SetMetadata(ROLES_KEY, roles);
 
+/** Global guard, runs after JwtAuthGuard. Enforces @Roles(); a non-public route without a user is denied. */
 @Injectable()
 export class RolesAndRestrictionGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
   canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const user: AuthenticatedUser | undefined = request.user;
+    if (context.getType() !== 'http') return true;
+    const targets = [context.getHandler(), context.getClass()];
+    if (this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, targets)) return true;
 
-    if (!user) {
-      return true; // Handled by Auth middleware/header parser in demo/prod
-    }
+    const user: AuthenticatedUser | undefined = context.switchToHttp().getRequest().user;
+    if (!user) throw new ForbiddenException('Access denied.');
 
-    if (user.status === 'BLOCKED' || user.status === 'SUSPENDED') {
-      throw new ForbiddenException(
-        `Your account is currently ${user.status}. Please contact Customer Care Support.`,
-      );
-    }
-
-    const requiredRoles: UserRole[] = Reflect.getMetadata(ROLES_KEY, context.getHandler()) || [];
-    if (requiredRoles.length === 0) {
+    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, targets) ?? [];
+    if (requiredRoles.length === 0 || user.role === 'SUPER_ADMIN' || requiredRoles.includes(user.role)) {
       return true;
     }
-
-    if (user.role === 'SUPER_ADMIN' || requiredRoles.includes(user.role)) {
-      return true;
-    }
-
     throw new ForbiddenException(`Access denied. Required role: ${requiredRoles.join(' or ')}`);
   }
 }

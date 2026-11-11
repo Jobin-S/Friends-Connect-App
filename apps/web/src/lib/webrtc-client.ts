@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { getAccessToken } from './api';
 import { CallType, isVideoAllowed as callTypeAllowsVideo } from '@friends-connect/contracts';
 
 export type WebRtcCallMode = CallType;
@@ -126,6 +127,7 @@ export class WebRtcCallClient {
         ? `${window.location.protocol}//${window.location.hostname}:4000`
         : 'http://localhost:4000');
     this.socket = io(url, {
+      auth: { token: getAccessToken() },
       transports: ['websocket'],
       reconnectionAttempts: 2,
       timeout: 3000,
