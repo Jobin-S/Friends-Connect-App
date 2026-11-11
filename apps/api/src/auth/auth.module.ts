@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ApplicationsController } from '../applications/applications.controller';
 import { ApplicationsService } from '../applications/applications.service';
 import { AdminController } from '../admin/admin.controller';
+import { UsersController } from '../users/users.controller';
 import { RolesAndRestrictionGuard } from '../common/roles.guard';
 import { Env } from '../config/env';
 import { AuthController } from './auth.controller';
@@ -24,7 +25,7 @@ import { UserLoaderService } from './user-loader.service';
       }),
     }),
   ],
-  controllers: [AuthController, ApplicationsController, AdminController],
+  controllers: [AuthController, ApplicationsController, AdminController, UsersController],
   providers: [
     OtpService,
     { provide: OtpSender, useClass: DevOtpSender },

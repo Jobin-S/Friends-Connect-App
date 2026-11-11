@@ -43,6 +43,7 @@ npm test -w @friends-connect/api   # API e2e tests (needs infra:up); single test
 **Auth (Phase 1, `apps/api/src/auth/`):**
 - Phone + OTP login. OTPs are hashed in Redis with cooldown, hourly limits and a 5-attempt lockout. `OTP_DEV_CODE` (123456) replaces real SMS in development, and the API refuses to start with it in production. Delivery goes through the `OtpSender` abstract class, so a real SMS provider plugs in there.
 - Unknown phone → `NEEDS_REGISTRATION` with a 15-minute registration JWT → `POST /api/auth/register`.
+- **Registration requires a `profile`** (city, `dateOfBirth` YYYY-MM-DD with an 18+ check in IST that returns `UNDERAGE`, optional gender, up to 5 `INTERESTS`, and an optional bio of at most 160 characters). Validation is in `apps/api/src/users/profile.schemas.ts`. `PATCH /api/users/me` edits everything except date of birth, which is immutable; sending `null` clears gender or bio.
 - Everyone registers as `NORMAL`. Celebrity and organizer sign-ups create a `RoleApplication` (PENDING), and the role changes only in `ApplicationsService.approve`, a single transaction. Support agents are created only by the admin (`/api/admin/support-agents`). Admin accounts are never self-registered.
 - **Tokens:**
   - The access JWT lasts 15 minutes and is sent as a Bearer header.

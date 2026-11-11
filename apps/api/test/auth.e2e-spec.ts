@@ -6,6 +6,7 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { PrismaService } from '../src/infra/prisma.service';
 import { RedisService } from '../src/infra/redis.service';
+import { ageOn, todayInIndia } from '../src/users/profile.schemas';
 
 /**
  * End-to-end tests for Phase 1 auth against the real Postgres + Redis (docker compose).
@@ -14,6 +15,13 @@ import { RedisService } from '../src/infra/redis.service';
  */
 const CODE = process.env.OTP_DEV_CODE ?? '123456';
 const ADMIN_PHONE = '+919000000001';
+const PROFILE = { city: 'Kochi', dateOfBirth: '1999-05-20', interests: ['Music', 'Food'] };
+
+/** YYYY-MM-DD for "today in India minus N years". */
+function yearsAgo(n: number): string {
+  const [y, m, d] = todayInIndia().split('-');
+  return `${Number(y) - n}-${m}-${d === '29' && m === '02' ? '28' : d}`;
+}
 
 let app: INestApplication;
 let prisma: PrismaService;
@@ -54,7 +62,7 @@ async function registerNew(body: Record<string, unknown>, phone = randomPhone())
   expect(v.body.status).toBe('NEEDS_REGISTRATION');
   const res = await http()
     .post('/api/auth/register')
-    .send({ registrationToken: v.body.registrationToken, ...body })
+    .send({ registrationToken: v.body.registrationToken, profile: PROFILE, ...body })
     .expect(201);
   return { phone, res };
 }
@@ -158,7 +166,12 @@ describe('Registration', () => {
       const v = await verify(phone);
       await http()
         .post('/api/auth/register')
-        .send({ registrationToken: v.body.registrationToken, displayName: 'Sneaky', accountType })
+        .send({
+          registrationToken: v.body.registrationToken,
+          displayName: 'Sneaky',
+          accountType,
+          profile: PROFILE,
+        })
         .expect(400);
       expect(await prisma.user.findUnique({ where: { phoneNumber: phone } })).toBeNull();
     }
@@ -179,7 +192,12 @@ describe('Registration', () => {
   it('rejects a forged registration token', async () => {
     const res = await http()
       .post('/api/auth/register')
-      .send({ registrationToken: 'not-a-token', displayName: 'Forger', accountType: 'NORMAL' })
+      .send({
+        registrationToken: 'not-a-token',
+        displayName: 'Forger',
+        accountType: 'NORMAL',
+        profile: PROFILE,
+      })
       .expect(401);
     expect(res.body.code).toBe('REGISTRATION_TOKEN_INVALID');
   });
@@ -187,10 +205,146 @@ describe('Registration', () => {
   it('does not register the same phone twice', async () => {
     const phone = randomPhone();
     const v = await verify(phone);
-    const body = { registrationToken: v.body.registrationToken, displayName: 'Twice', accountType: 'NORMAL' };
+    const body = {
+      registrationToken: v.body.registrationToken,
+      displayName: 'Twice',
+      accountType: 'NORMAL',
+      profile: PROFILE,
+    };
     await http().post('/api/auth/register').send(body).expect(201);
     const res = await http().post('/api/auth/register').send(body).expect(409);
     expect(res.body.code).toBe('ALREADY_REGISTERED');
+  });
+});
+
+describe('Profile at sign-up', () => {
+  async function tryRegister(profile: unknown) {
+    const v = await verify(randomPhone());
+    return http().post('/api/auth/register').send({
+      registrationToken: v.body.registrationToken,
+      displayName: 'Profile Test',
+      accountType: 'NORMAL',
+      profile,
+    });
+  }
+
+  it('stores the profile and returns it on the user', async () => {
+    const res = await tryRegister({
+      city: '  Kozhikode ',
+      dateOfBirth: '1996-02-29',
+      gender: 'NON_BINARY',
+      interests: ['Tech', 'Books', 'Tech'],
+      bio: 'Hello there',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.user).toMatchObject({
+      city: 'Kozhikode',
+      dateOfBirth: '1996-02-29',
+      gender: 'NON_BINARY',
+      interests: ['Tech', 'Books'],
+      bio: 'Hello there',
+    });
+  });
+
+  it('defaults optional fields', async () => {
+    const res = await tryRegister({ city: 'Kochi', dateOfBirth: '2001-01-01' });
+    expect(res.status).toBe(201);
+    expect(res.body.user).toMatchObject({ gender: null, interests: [], bio: null });
+  });
+
+  it('requires a profile with city and date of birth', async () => {
+    expect((await tryRegister(undefined)).status).toBe(400);
+    expect((await tryRegister({ dateOfBirth: '1999-01-01' })).status).toBe(400);
+    expect((await tryRegister({ city: 'Kochi' })).status).toBe(400);
+  });
+
+  it('refuses anyone under 18, and accepts someone turning 18 today', async () => {
+    const minor = await tryRegister({ city: 'Kochi', dateOfBirth: yearsAgo(17) });
+    expect(minor.status).toBe(400);
+    expect(minor.body.code).toBe('UNDERAGE');
+    const exactly = await tryRegister({ city: 'Kochi', dateOfBirth: yearsAgo(18) });
+    expect(exactly.status).toBe(201);
+  });
+
+  it('counts age by calendar date (birthday must have arrived)', () => {
+    expect(ageOn('2000-06-15', '2018-06-14')).toBe(17);
+    expect(ageOn('2000-06-15', '2018-06-15')).toBe(18);
+    expect(ageOn('2000-02-29', '2018-02-28')).toBe(17);
+    expect(ageOn('2000-02-29', '2018-03-01')).toBe(18);
+  });
+
+  it('rejects impossible or future dates', async () => {
+    expect((await tryRegister({ city: 'Kochi', dateOfBirth: '1999-02-30' })).status).toBe(400);
+    expect((await tryRegister({ city: 'Kochi', dateOfBirth: '20-01-1999' })).status).toBe(400);
+    expect((await tryRegister({ city: 'Kochi', dateOfBirth: yearsAgo(-1) })).status).toBe(400);
+  });
+
+  it('only allows up to 5 interests from the fixed list', async () => {
+    const unknown = await tryRegister({ ...PROFILE, interests: ['Music', 'Skydiving'] });
+    expect(unknown.status).toBe(400);
+    const tooMany = await tryRegister({
+      ...PROFILE,
+      interests: ['Music', 'Cricket', 'Films', 'Food', 'Travel', 'Comedy'],
+    });
+    expect(tooMany.status).toBe(400);
+  });
+
+  it('limits the bio to 160 characters', async () => {
+    expect((await tryRegister({ ...PROFILE, bio: 'x'.repeat(161) })).status).toBe(400);
+  });
+});
+
+describe('PATCH /api/users/me', () => {
+  it('updates only the fields sent, and null clears gender and bio', async () => {
+    const { res } = await registerNew({
+      displayName: 'Editor',
+      accountType: 'NORMAL',
+      profile: { ...PROFILE, gender: 'WOMAN', bio: 'Old bio' },
+    });
+    const auth = `Bearer ${res.body.accessToken}`;
+
+    const updated = await http()
+      .patch('/api/users/me')
+      .set('Authorization', auth)
+      .send({ displayName: 'Edited Name', city: 'Kannur', interests: ['Dance'], bio: null, gender: null })
+      .expect(200);
+    expect(updated.body).toMatchObject({
+      displayName: 'Edited Name',
+      city: 'Kannur',
+      interests: ['Dance'],
+      bio: null,
+      gender: null,
+      dateOfBirth: PROFILE.dateOfBirth,
+    });
+
+    const me = await http().get('/api/auth/me').set('Authorization', auth).expect(200);
+    expect(me.body.city).toBe('Kannur');
+  });
+
+  it('does not allow changing the date of birth or unknown fields', async () => {
+    const { res } = await registerNew({ displayName: 'Fixed DOB', accountType: 'NORMAL' });
+    const auth = `Bearer ${res.body.accessToken}`;
+    await http()
+      .patch('/api/users/me')
+      .set('Authorization', auth)
+      .send({ dateOfBirth: '1970-01-01' })
+      .expect(400);
+    await http().patch('/api/users/me').set('Authorization', auth).send({ role: 'SUPER_ADMIN' }).expect(400);
+  });
+
+  it('validates the same rules as sign-up', async () => {
+    const { res } = await registerNew({ displayName: 'Validator', accountType: 'NORMAL' });
+    const auth = `Bearer ${res.body.accessToken}`;
+    await http()
+      .patch('/api/users/me')
+      .set('Authorization', auth)
+      .send({ interests: ['Skydiving'] })
+      .expect(400);
+    await http().patch('/api/users/me').set('Authorization', auth).send({ city: 'X' }).expect(400);
+  });
+
+  it('requires login', async () => {
+    await http().patch('/api/users/me').send({ city: 'Kochi' }).expect(401);
   });
 });
 
@@ -239,7 +393,12 @@ describe('Sessions', () => {
     const res = await http()
       .post('/api/auth/register')
       .set('X-Client', 'mobile')
-      .send({ registrationToken: v.body.registrationToken, displayName: 'Phone App', accountType: 'NORMAL' })
+      .send({
+        registrationToken: v.body.registrationToken,
+        displayName: 'Phone App',
+        accountType: 'NORMAL',
+        profile: PROFILE,
+      })
       .expect(201);
     expect(res.body.refreshToken).toEqual(expect.any(String));
     expect(res.headers['set-cookie']).toBeUndefined();
