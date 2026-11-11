@@ -16,6 +16,7 @@ import type { AuthenticatedUser } from '../common/roles.guard';
 import { ZodValidationPipe } from '../common/zod-validation.pipe';
 import { Env } from '../config/env';
 import { PrismaService } from '../infra/prisma.service';
+import { assertAdult, profileInputSchema, toDbDate } from '../users/profile.schemas';
 import { toUserDto } from '../users/user-dto';
 import { CurrentUser } from './current-user.decorator';
 import { OTP_RESEND_AFTER_SECONDS, OTP_TTL_SECONDS, OtpService } from './otp.service';
@@ -30,16 +31,23 @@ const phoneBody = z.object({ phone: z.string().min(5).max(30) });
 const verifyBody = phoneBody.extend({ code: z.string().regex(/^\d{6}$/, 'must be 6 digits') });
 const displayName = z.string().trim().min(2).max(60);
 const registerBody = z.discriminatedUnion('accountType', [
-  z.object({ registrationToken: z.string(), displayName, accountType: z.literal('NORMAL') }),
   z.object({
     registrationToken: z.string(),
     displayName,
+    profile: profileInputSchema,
+    accountType: z.literal('NORMAL'),
+  }),
+  z.object({
+    registrationToken: z.string(),
+    displayName,
+    profile: profileInputSchema,
     accountType: z.literal('CELEBRITY'),
     application: celebrityDetailsSchema,
   }),
   z.object({
     registrationToken: z.string(),
     displayName,
+    profile: profileInputSchema,
     accountType: z.literal('ORG'),
     application: orgDetailsSchema,
   }),
@@ -105,13 +113,25 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoggedInResponse> {
     const phone = this.tokens.verifyRegistrationToken(body.registrationToken);
+    assertAdult(body.profile.dateOfBirth);
+    const { city, dateOfBirth, gender, interests, bio } = body.profile;
 
     let userId: string;
     try {
       userId = await this.prisma.$transaction(async (tx) => {
         // Everyone starts as NORMAL; celebrity/organizer roles are granted only by admin approval.
         const user = await tx.user.create({
-          data: { phoneNumber: phone, displayName: body.displayName, role: 'NORMAL', wallet: { create: {} } },
+          data: {
+            phoneNumber: phone,
+            displayName: body.displayName,
+            role: 'NORMAL',
+            city,
+            dateOfBirth: toDbDate(dateOfBirth),
+            gender: gender ?? null,
+            interests,
+            bio: bio ?? null,
+            wallet: { create: {} },
+          },
         });
         if (body.accountType === 'CELEBRITY') {
           await this.applications.apply(

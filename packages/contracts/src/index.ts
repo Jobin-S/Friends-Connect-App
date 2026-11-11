@@ -35,6 +35,46 @@ export type ApplicationRole = 'CELEBRITY' | 'ORG';
 export type ApplicationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type AccountStatus = 'ACTIVE' | 'BLOCKED' | 'RESTRICTED' | 'SUSPENDED';
 
+/** Optional self-described gender. */
+export const GENDERS = ['WOMAN', 'MAN', 'NON_BINARY', 'PREFER_NOT_TO_SAY'] as const;
+export type Gender = (typeof GENDERS)[number];
+
+/** Interests a user can pick (at most MAX_INTERESTS). Used for matching and recommendations later. */
+export const INTERESTS = [
+  'Music',
+  'Cricket',
+  'Films',
+  'Food',
+  'Travel',
+  'Comedy',
+  'Books',
+  'Tech',
+  'Dance',
+  'Startups',
+] as const;
+export type Interest = (typeof INTERESTS)[number];
+export const MAX_INTERESTS = 5;
+export const MIN_AGE_YEARS = 18;
+export const MAX_BIO_LENGTH = 160;
+
+/** Collected at sign-up for every account type. `dateOfBirth` is YYYY-MM-DD and cannot be changed later. */
+export interface ProfileInput {
+  city: string;
+  dateOfBirth: string;
+  gender?: Gender;
+  interests?: Interest[];
+  bio?: string;
+}
+
+/** PATCH /api/users/me. `null` clears gender or bio. Date of birth is not editable. */
+export interface UpdateProfileBody {
+  displayName?: string;
+  city?: string;
+  gender?: Gender | null;
+  interests?: Interest[];
+  bio?: string | null;
+}
+
 export interface CelebrityApplicationDetails {
   category: string;
   bio: string;
@@ -63,6 +103,12 @@ export interface UserDto {
   displayName: string;
   role: UserRole;
   status: AccountStatus;
+  city: string | null;
+  /** YYYY-MM-DD */
+  dateOfBirth: string | null;
+  gender: Gender | null;
+  interests: Interest[];
+  bio: string | null;
   /** Latest celebrity/organizer application, if any (pending, or most recently reviewed). */
   latestApplication: RoleApplicationDto | null;
 }
@@ -96,20 +142,15 @@ export interface NeedsRegistrationResponse {
 }
 export type OtpVerifyResponse = LoggedInResponse | NeedsRegistrationResponse;
 
+interface RegisterBase {
+  registrationToken: string;
+  displayName: string;
+  profile: ProfileInput;
+}
 export type RegisterBody =
-  | { registrationToken: string; displayName: string; accountType: 'NORMAL' }
-  | {
-      registrationToken: string;
-      displayName: string;
-      accountType: 'CELEBRITY';
-      application: CelebrityApplicationDetails;
-    }
-  | {
-      registrationToken: string;
-      displayName: string;
-      accountType: 'ORG';
-      application: OrgApplicationDetails;
-    };
+  | (RegisterBase & { accountType: 'NORMAL' })
+  | (RegisterBase & { accountType: 'CELEBRITY'; application: CelebrityApplicationDetails })
+  | (RegisterBase & { accountType: 'ORG'; application: OrgApplicationDetails });
 
 export type ApplyBody =
   | { requestedRole: 'CELEBRITY'; details: CelebrityApplicationDetails }
@@ -131,5 +172,6 @@ export const AUTH_ERROR_CODES = {
   REGISTRATION_TOKEN_INVALID: 'REGISTRATION_TOKEN_INVALID',
   APPLICATION_ALREADY_PENDING: 'APPLICATION_ALREADY_PENDING',
   SESSION_INVALID: 'SESSION_INVALID',
+  UNDERAGE: 'UNDERAGE',
 } as const;
 export type AuthErrorCode = (typeof AUTH_ERROR_CODES)[keyof typeof AUTH_ERROR_CODES];

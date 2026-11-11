@@ -3,7 +3,7 @@
  * Idempotent: safe to run repeatedly (users are matched by phone number; their related data is replaced).
  * Run with: npm run db:seed
  */
-import { PrismaClient, UserRole } from '@prisma/client';
+import { Gender, PrismaClient, UserRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -194,6 +194,63 @@ async function main() {
     await prisma.organizationProfile.deleteMany({ where: { userId: user.id } });
     await prisma.roleApplication.create({
       data: { userId: user.id, requestedRole: a.requestedRole, details: a.details },
+    });
+  }
+
+  // --- Profile details (city, date of birth, interests) ---------------------------
+  const profiles: Record<
+    string,
+    { city: string; dob: string; gender?: Gender; interests: string[]; bio?: string }
+  > = {
+    '+919876543210': {
+      city: 'Kochi',
+      dob: '1998-04-12',
+      gender: 'MAN',
+      interests: ['Cricket', 'Films', 'Food'],
+      bio: 'Weekend cricketer, weekday coder.',
+    },
+    '+919876543211': {
+      city: 'Thiruvananthapuram',
+      dob: '2000-09-03',
+      gender: 'WOMAN',
+      interests: ['Music', 'Books', 'Travel'],
+    },
+    '+919999900001': {
+      city: 'Kochi',
+      dob: '1990-07-28',
+      gender: 'MAN',
+      interests: ['Films', 'Travel'],
+      bio: 'Actor. Fan calls most evenings.',
+    },
+    '+919999900002': {
+      city: 'Thiruvananthapuram',
+      dob: '1995-01-19',
+      gender: 'WOMAN',
+      interests: ['Music', 'Dance'],
+      bio: 'Playback singer & composer.',
+    },
+    '+919888800001': { city: 'Kochi', dob: '1985-11-02', interests: ['Music', 'Startups'] },
+    '+919777700001': { city: 'Kozhikode', dob: '1996-06-15', gender: 'MAN', interests: ['Tech'] },
+    '+919000000001': { city: 'Kochi', dob: '1988-03-30', interests: ['Tech', 'Startups'] },
+    '+919999900003': {
+      city: 'Thrissur',
+      dob: '1997-12-08',
+      gender: 'MAN',
+      interests: ['Comedy', 'Films'],
+      bio: 'Stand-up comic.',
+    },
+    '+919888800002': { city: 'Kozhikode', dob: '1983-05-21', interests: ['Music', 'Food'] },
+  };
+  for (const [phoneNumber, p] of Object.entries(profiles)) {
+    await prisma.user.update({
+      where: { phoneNumber },
+      data: {
+        city: p.city,
+        dateOfBirth: new Date(`${p.dob}T00:00:00Z`),
+        gender: p.gender ?? null,
+        interests: p.interests,
+        bio: p.bio ?? null,
+      },
     });
   }
 

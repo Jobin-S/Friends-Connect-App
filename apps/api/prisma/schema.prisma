@@ -20,6 +20,13 @@ enum UserRole {
   SUPER_ADMIN
 }
 
+enum Gender {
+  WOMAN
+  MAN
+  NON_BINARY
+  PREFER_NOT_TO_SAY
+}
+
 enum AccountStatus {
   ACTIVE
   BLOCKED
@@ -95,6 +102,12 @@ model User {
   role         UserRole      @default(NORMAL)
   displayName  String        @map("display_name")
   avatarUrl    String?       @map("avatar_url")
+  city         String?
+  /// Date only (no time). Set at sign-up and never editable.
+  dateOfBirth  DateTime?     @map("date_of_birth") @db.Date
+  gender       Gender?
+  interests    String[]      @default([])
+  bio          String?       @db.VarChar(160)
   status       AccountStatus @default(ACTIVE)
   /// Granular Super Admin restrictions, e.g. { "canRandomAudio": true, "canRandomVideo": true, "maxCallsPerDay": 50 }
   restrictions Json          @default("{\"canRandomAudio\": true, \"canRandomVideo\": true, \"canCallCelebrities\": true, \"maxCallsPerDay\": 100}")

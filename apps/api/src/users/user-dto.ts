@@ -1,4 +1,4 @@
-import type { RoleApplicationDto, UserDto } from '@friends-connect/contracts';
+import type { Gender, Interest, RoleApplicationDto, UserDto } from '@friends-connect/contracts';
 import { RoleApplication, User } from '@prisma/client';
 
 export function toApplicationDto(app: RoleApplication): RoleApplicationDto {
@@ -20,6 +20,12 @@ export function toUserDto(user: User, latestApplication: RoleApplication | null)
     displayName: user.displayName,
     role: user.role,
     status: user.status,
+    city: user.city,
+    // @db.Date comes back as midnight UTC; keep only the date part.
+    dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : null,
+    gender: user.gender as Gender | null,
+    interests: user.interests as Interest[],
+    bio: user.bio,
     latestApplication: latestApplication ? toApplicationDto(latestApplication) : null,
   };
 }
