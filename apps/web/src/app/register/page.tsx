@@ -54,8 +54,12 @@ export default function RegisterPage() {
   useEffect(() => {
     if (user) return router.replace('/');
     const p = readPendingRegistration();
-    if (!p) router.replace('/login');
-    else setPending(p);
+    if (!p) return router.replace('/login');
+    setPending(p);
+    // Arriving from "Apply as a creator" or "Start hosting" preselects that account type.
+    const intent = new URLSearchParams(window.location.search).get('intent');
+    if (intent === 'creator') setAccountType('CELEBRITY');
+    else if (intent === 'host') setAccountType('ORG');
   }, [user, router]);
 
   async function submit(e: FormEvent) {
