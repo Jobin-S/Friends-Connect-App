@@ -1,14 +1,49 @@
 'use client';
 
+import {
+  GENDERS,
+  INTERESTS,
+  MAX_BIO_LENGTH,
+  MAX_INTERESTS,
+  type Gender,
+  type Interest,
+  type UpdateProfileBody,
+  type UserDto,
+} from '@friends-connect/contracts';
 import Link from 'next/link';
-import { useState } from 'react';
+import { FormEvent, useState, type ReactNode } from 'react';
+import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { ApplicationNotice } from '@/components/ui/ApplicationNotice';
+import { areaClass, AuthError, AuthField, fieldClass } from '@/components/ui/AuthLayout';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
+import { Dots } from '@/components/ui/motion';
 import { useToast } from '@/components/ui/Toast';
-import { interests, recentChats } from '@/data/aurora-mock';
+import { recentChats } from '@/data/aurora-mock';
 import { useCoins, useTickets } from '@/data/aurora-store';
+
+const GENDER_LABEL: Record<Gender, string> = {
+  WOMAN: 'Woman',
+  MAN: 'Man',
+  NON_BINARY: 'Non-binary',
+  PREFER_NOT_TO_SAY: 'Prefer not to say',
+};
+
+function ChipToggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={`press rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+        on ? 'border-ink bg-ink text-white' : 'border-line bg-white/50 text-ink-soft hover:text-ink'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 function Toggle({
   label,
@@ -52,12 +87,43 @@ function Toggle({
 
 export default function ProfilePage() {
   const toast = useToast();
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [coins] = useCoins();
   const [tickets] = useTickets();
   const [name, setName] = useState(user?.displayName ?? '');
+  const [city, setCity] = useState(user?.city ?? '');
+  const [gender, setGender] = useState<Gender | null>(user?.gender ?? null);
+  const [mine, setMine] = useState<Interest[]>((user?.interests ?? []) as Interest[]);
+  const [bio, setBio] = useState(user?.bio ?? '');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
-  const [mine, setMine] = useState(['Music', 'Films', 'Startups']);
+
+  const dobLabel = user?.dateOfBirth
+    ? new Date(`${user.dateOfBirth}T00:00:00`).toLocaleDateString('en-IN', { dateStyle: 'long' })
+    : 'Not set';
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    const body: UpdateProfileBody = {
+      displayName: name.trim(),
+      city: city.trim(),
+      gender,
+      interests: mine,
+      bio: bio.trim() || null,
+    };
+    try {
+      await api<UserDto>('/api/users/me', { method: 'PATCH', body });
+      await refreshUser();
+      toast('Profile saved');
+    } catch (err) {
+      setSaveError(err instanceof ApiError ? err.message : 'Could not save your profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
   const [prefs, setPrefs] = useState({
     showCity: true,
     videoOff: true,
@@ -74,7 +140,9 @@ export default function ProfilePage() {
             <Avatar name={name || 'You'} hue="mint" size="xl" />
           </div>
           <h1 className="mt-4 text-2xl font-extrabold tracking-tight">{name || 'You'}</h1>
-          <p className="text-sm text-ink-soft">{user?.phoneNumber}</p>
+          <p className="text-sm text-ink-soft">
+            {[user?.city, user?.phoneNumber].filter(Boolean).join(', ')}
+          </p>
           <ApplicationNotice className="mt-4 text-left" />
           <dl className="mt-6 grid grid-cols-3 gap-2 text-center">
             {[
@@ -119,44 +187,81 @@ export default function ProfilePage() {
       </aside>
 
       <div className="grid gap-6">
-        <section className="glass rounded-[2rem] p-6 shadow-glass">
+        <form onSubmit={save} className="glass rounded-[2rem] p-6 shadow-glass">
           <h2 className="text-xl font-bold">About you</h2>
-          <label className="mt-4 block">
-            <span className="text-sm font-semibold text-ink-soft">Display name</span>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={24}
-              className="mt-1.5 h-12 w-full rounded-2xl border border-line bg-white/80 px-4 font-semibold outline-none focus:border-coral"
-            />
-          </label>
-          <p className="mt-5 text-sm font-semibold text-ink-soft">Interests, up to five</p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <AuthField label="Display name">
+              <input
+                required
+                minLength={2}
+                maxLength={60}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={fieldClass}
+              />
+            </AuthField>
+            <AuthField label="City">
+              <input
+                required
+                minLength={2}
+                maxLength={60}
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className={fieldClass}
+              />
+            </AuthField>
+          </div>
+          <p className="mt-4 text-sm text-ink-soft">
+            Date of birth: <strong className="font-semibold text-ink">{dobLabel}</strong>. This cannot be
+            changed.
+          </p>
+
+          <p className="mt-5 text-sm font-semibold text-ink-soft">Gender</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {interests.map((i) => {
+            {GENDERS.map((g) => (
+              <ChipToggle key={g} on={gender === g} onClick={() => setGender(gender === g ? null : g)}>
+                {GENDER_LABEL[g]}
+              </ChipToggle>
+            ))}
+          </div>
+
+          <p className="mt-5 text-sm font-semibold text-ink-soft">Interests, up to {MAX_INTERESTS}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {INTERESTS.map((i) => {
               const on = mine.includes(i);
               return (
-                <button
+                <ChipToggle
                   key={i}
-                  aria-pressed={on}
+                  on={on}
                   onClick={() =>
-                    setMine((m) => (on ? m.filter((x) => x !== i) : m.length < 5 ? [...m, i] : m))
+                    setMine((m) => (on ? m.filter((x) => x !== i) : m.length < MAX_INTERESTS ? [...m, i] : m))
                   }
-                  className={`press rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-                    on
-                      ? 'border-ink bg-ink text-white'
-                      : 'border-line bg-white/50 text-ink-soft hover:text-ink'
-                  }`}
                 >
                   {i}
-                </button>
+                </ChipToggle>
               );
             })}
           </div>
-          {/* TODO(api): PATCH the profile through the auth session's user endpoint. */}
-          <Button className="mt-6" onClick={() => toast('Profile saved')}>
-            Save profile
+
+          <div className="mt-5">
+            <AuthField label="A line about you" hint={`${bio.length}/${MAX_BIO_LENGTH}`}>
+              <textarea
+                rows={2}
+                maxLength={MAX_BIO_LENGTH}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                className={areaClass}
+              />
+            </AuthField>
+          </div>
+
+          <div className="mt-4">
+            <AuthError>{saveError}</AuthError>
+          </div>
+          <Button type="submit" className="mt-4" disabled={saving}>
+            {saving ? <Dots /> : 'Save profile'}
           </Button>
-        </section>
+        </form>
 
         <section className="glass rounded-[2rem] px-6 py-2 shadow-glass">
           <h2 className="pt-4 text-xl font-bold">Privacy</h2>
