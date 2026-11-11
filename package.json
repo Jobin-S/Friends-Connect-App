@@ -1,0 +1,37 @@
+{
+  "name": "friends-connect",
+  "private": true,
+  "description": "Friends Connect monorepo: API (NestJS), web (Next.js), shared contracts, mobile apps",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "dev": "npm run build -w @friends-connect/contracts && concurrently -n api,web -c blue,green \"npm run dev -w @friends-connect/api\" \"npm run dev -w @friends-connect/web\"",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:migrate": "npm run db:migrate -w @friends-connect/api",
+    "db:deploy": "npm run db:deploy -w @friends-connect/api",
+    "db:seed": "npm run db:seed -w @friends-connect/api",
+    "db:reset": "npm run db:reset -w @friends-connect/api",
+    "db:studio": "npm run db:studio -w @friends-connect/api"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.18.0"
+  }
+}

@@ -1,45 +1,65 @@
-# Friends Connect — Multi-Platform Ecosystem
+# Friends Connect
 
-A full-stack social discovery, celebrity interaction, and location-based event ticketing platform built across **4 native codebases**:
-1. **Backend (`backend/`)**: NestJS + TypeScript + PostgreSQL/PostGIS + Redis + Socket.io + LiveKit WebRTC
-2. **Web Application (`web/`)**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
-3. **Android Native (`android/`)**: Kotlin + Jetpack Compose + Android Telecom `ConnectionService`
-4. **iOS Native (`ios/`)**: Swift + SwiftUI + Apple `CallKit`
+Social discovery, celebrity calls and location-based event ticketing, for web, Android and iOS.
 
----
+The build plan and current phase are in [PLAN.md](PLAN.md).
 
-## Call & Communication Matrix
+## Repository layout
 
-| Caller $\rightarrow$ Receiver | Audio Call | Video Call | Live Chat | Billing / Access |
-| :--- | :---: | :---: | :---: | :--- |
-| **Normal User $\leftrightarrow$ Normal User (Random Match)** | ✅ Yes | ✅ Yes | ❌ No | Free 1-Tap Matchmaking |
-| **Normal User $\rightarrow$ Celebrity User** | ✅ Yes | ✅ Yes | ❌ No | **Premium / Wallet Coins** (Per-minute rate) |
-| **Normal User $\leftrightarrow$ Customer Care Support** | ✅ Yes | ❌ **No** | ✅ Yes | Free Support (Strict Audio-Only + Chat) |
-| **Celebrity User $\leftrightarrow$ Customer Care Support** | ✅ Yes | ❌ **No** | ✅ Yes | Free VIP Support (Strict Audio-Only + Chat) |
+| Path | What |
+|---|---|
+| `apps/api` | Backend: NestJS, Prisma (PostgreSQL + PostGIS), Redis, Socket.io, LiveKit tokens |
+| `apps/web` | Web app: Next.js 14, Tailwind |
+| `packages/contracts` | Types and rules shared by the API and clients (call types, call policy) |
+| `mobile/android` | Android app: Kotlin, Jetpack Compose, Telecom `ConnectionService` (skeleton) |
+| `mobile/ios` | iOS app: SwiftUI, CallKit (skeleton) |
+| `notes/` | Engineering notes: Supabase setup, what was kept from the old demo |
 
----
+## Call and communication matrix
 
-## Quick Start Guide
+| Caller → Receiver | Audio | Video | Chat | Billing |
+|---|:---:|:---:|:---:|---|
+| Normal user ↔ normal user (random match) | ✅ | ✅ | ❌ | Free |
+| Normal user → celebrity | ✅ | ✅ | ❌ | Wallet coins, per minute |
+| Normal user ↔ customer care | ✅ | ❌ | ✅ | Free, audio only |
+| Celebrity ↔ customer care | ✅ | ❌ | ✅ | Free, audio only |
 
-### 1. Start Infrastructure (PostgreSQL/PostGIS, Redis, LiveKit)
+## Local development
+
+Requirements: Node.js 20+, Docker Desktop.
+
 ```bash
-docker compose up -d
+npm install                          # installs all workspaces
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+npm run infra:up                     # PostgreSQL+PostGIS (port 5433), Redis (6379), LiveKit (7880)
+npm run db:deploy                    # apply migrations
+npm run db:seed                      # demo accounts and sample data (safe to re-run)
+npm run dev                          # API on :4000 and web on :3000
 ```
 
-### 2. Run Backend API & Real-Time Signaling Server (`http://localhost:4000`)
-```bash
-cd backend
-npm install
-npm run start:dev
-```
+To check the setup, open http://localhost:4000/api/health. It should return `{"status":"ok","database":"up","redis":"up"}`.
 
-### 3. Run Unified Multi-Role Web Application (`http://localhost:3000`)
-```bash
-cd web
-npm install
-npm run dev
-```
+### Common commands
 
-### 4. Native Mobile Apps
-- **Android Native (`android/`)**: Open `android/` in Android Studio Ladybug+ and run the `app` configuration on an emulator or physical device.
-- **iOS Native (`ios/`)**: Open `ios/Package.swift` in Xcode 16+ and run on an iOS 17+ Simulator or device.
+| Command | Does |
+|---|---|
+| `npm run dev` | Run API and web together |
+| `npm run typecheck` / `npm run lint` / `npm run format` | Code checks (CI runs the same) |
+| `npm run build` | Production build of every workspace |
+| `npm run db:migrate` | Create a new migration after editing `schema.prisma` (interactive terminal) |
+| `npm run db:reset` | Drop, re-migrate and re-seed the local database |
+| `npm run db:studio` | Browse the database in Prisma Studio |
+| `npm run infra:down` | Stop the Docker services |
+
+### Seed accounts
+
+See [notes/demo-salvage.md](notes/demo-salvage.md#seed-accounts). Real OTP login arrives in Phase 1.
+
+## Hosted database (Supabase)
+
+See [notes/supabase-setup.md](notes/supabase-setup.md).
+
+## Mobile apps
+
+Open `mobile/android` in Android Studio, or `mobile/ios/Package.swift` in Xcode 16+. Both are skeletons until Phase 5.

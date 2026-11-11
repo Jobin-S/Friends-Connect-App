@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_USER: fc_admin
+          POSTGRES_PASSWORD: fc_secret_pass
+          POSTGRES_DB: friends_connect
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U fc_admin -d friends_connect"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://fc_admin:fc_secret_pass@localhost:5432/friends_connect?schema=public
+      DIRECT_URL: postgresql://fc_admin:fc_secret_pass@localhost:5432/friends_connect?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @friends-connect/contracts
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Apply migrations and seed to a fresh database
+        run: |
+          npm run db:deploy
+          npm run db:seed
+      - run: npm run build

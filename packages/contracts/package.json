@@ -1,0 +1,12 @@
+{
+  "name": "@friends-connect/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Types and constants shared by the API, web and (via codegen) mobile clients",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}
