@@ -2,22 +2,43 @@
 
 import type { AdminApplicationDto, ApplicationStatus } from '@friends-connect/contracts';
 import { useCallback, useEffect, useState } from 'react';
-import { Button, ErrorText, Input } from '../../../components/form';
+import { AuthError, fieldClass } from '../../../components/ui/AuthLayout';
+import { Avatar, hueSurface } from '../../../components/ui/Avatar';
+import { Button } from '../../../components/ui/Button';
+import { useToast } from '../../../components/ui/Toast';
 import { api, ApiError } from '../../../lib/api';
 
 const TABS: ApplicationStatus[] = ['PENDING', 'APPROVED', 'REJECTED'];
-const ROLE_LABEL = { CELEBRITY: 'Celebrity', ORG: 'Event organizer' } as const;
+const TAB_LABEL: Record<ApplicationStatus, string> = {
+  PENDING: 'Waiting',
+  APPROVED: 'Approved',
+  REJECTED: 'Not approved',
+};
+const ROLE_LABEL = { CELEBRITY: 'Creator', ORG: 'Event host' } as const;
+const FIELD_LABEL: Record<string, string> = {
+  category: 'Works in',
+  bio: 'About',
+  socialUrl: 'Social profile',
+  companyName: 'Company',
+  registrationNo: 'GST / registration',
+  websiteUrl: 'Website',
+};
 
 function Details({ app }: { app: AdminApplicationDto }) {
   const entries = Object.entries(app.details).filter(([, v]) => v);
   return (
-    <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-sm">
+    <dl className="grid gap-3 sm:grid-cols-[max-content_1fr] sm:gap-x-6">
       {entries.map(([k, v]) => (
         <div key={k} className="contents">
-          <dt className="text-slate-400">{k}</dt>
-          <dd className="break-words">
+          <dt className="text-sm font-semibold text-ink-soft">{FIELD_LABEL[k] ?? k}</dt>
+          <dd className="-mt-2 break-words leading-relaxed sm:mt-0">
             {/^https?:\/\//.test(String(v)) ? (
-              <a href={String(v)} target="_blank" rel="noreferrer" className="text-blue-400 underline">
+              <a
+                href={String(v)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold text-coral-deep underline-offset-4 hover:underline"
+              >
                 {String(v)}
               </a>
             ) : (
@@ -31,6 +52,7 @@ function Details({ app }: { app: AdminApplicationDto }) {
 }
 
 export default function ApplicationsPage() {
+  const toast = useToast();
   const [status, setStatus] = useState<ApplicationStatus>('PENDING');
   const [apps, setApps] = useState<AdminApplicationDto[] | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -59,6 +81,8 @@ export default function ApplicationsPage() {
         method: 'POST',
         body: { note: notes[id] || undefined },
       });
+      const who = apps?.find((a) => a.id === id)?.user.displayName ?? 'Applicant';
+      toast(action === 'approve' ? `${who} approved` : `${who} not approved`);
       await load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Action failed.');
@@ -68,66 +92,110 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">Celebrity & organizer applications</h1>
-      <div className="flex gap-2">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setStatus(t)}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
-              status === t ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'
-            }`}
-          >
-            {t.charAt(0) + t.slice(1).toLowerCase()}
-          </button>
-        ))}
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Applications</h1>
+          <p className="mt-2 text-ink-soft">Creators and event hosts waiting for a decision.</p>
+        </div>
+        <div role="tablist" aria-label="Status" className="glass flex rounded-full p-1 shadow-glass">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              role="tab"
+              aria-selected={status === t}
+              onClick={() => setStatus(t)}
+              className={`press rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                status === t ? 'bg-ink text-white' : 'text-ink-soft hover:text-ink'
+              }`}
+            >
+              {TAB_LABEL[t]}
+            </button>
+          ))}
+        </div>
       </div>
-      <ErrorText>{error}</ErrorText>
+
+      <div className="mt-6">
+        <AuthError>{error}</AuthError>
+      </div>
 
       {apps === null ? (
-        <p className="text-sm text-slate-400">Loading…</p>
-      ) : apps.length === 0 ? (
-        <p className="text-sm text-slate-400">No {status.toLowerCase()} applications.</p>
-      ) : (
-        <ul className="space-y-3">
-          {apps.map((a) => (
-            <li key={a.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-              <div className="flex flex-wrap items-baseline gap-x-3">
-                <span className="font-semibold">{a.user.displayName}</span>
-                <span className="text-sm text-slate-400">{a.user.phoneNumber}</span>
-                <span className="text-xs rounded bg-slate-800 px-2 py-0.5">
-                  {ROLE_LABEL[a.requestedRole]}
-                </span>
-                <span className="ml-auto text-xs text-slate-500">
-                  Applied {new Date(a.createdAt).toLocaleString()}
-                </span>
-              </div>
-              <Details app={a} />
-              {a.status === 'PENDING' ? (
-                <div className="flex flex-wrap gap-2 items-center">
-                  <Input
-                    placeholder="Note to applicant (optional, shown if rejected)"
-                    className="flex-1 min-w-[220px]"
-                    value={notes[a.id] ?? ''}
-                    onChange={(e) => setNotes({ ...notes, [a.id]: e.target.value })}
-                  />
-                  <Button disabled={busyId === a.id} onClick={() => review(a.id, 'approve')}>
-                    Approve
-                  </Button>
-                  <Button variant="danger" disabled={busyId === a.id} onClick={() => review(a.id, 'reject')}>
-                    Reject
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-xs text-slate-400">
-                  {a.status === 'APPROVED' ? 'Approved' : 'Rejected'}
-                  {a.reviewedAt && ` on ${new Date(a.reviewedAt).toLocaleString()}`}
-                  {a.reviewNote && ` — “${a.reviewNote}”`}
-                </p>
-              )}
-            </li>
+        <div className="mt-6 grid gap-4">
+          {[0, 1].map((i) => (
+            <div key={i} className="skeleton h-48 animate-shimmer rounded-[2rem]" />
           ))}
+        </div>
+      ) : apps.length === 0 ? (
+        <div className="glass mt-6 rounded-[2rem] p-10 text-center shadow-glass">
+          <p className="font-bold">
+            {status === 'PENDING'
+              ? 'Nothing waiting. You are all caught up.'
+              : `No ${TAB_LABEL[status].toLowerCase()} applications yet.`}
+          </p>
+        </div>
+      ) : (
+        <ul className="mt-6 grid gap-4">
+          {apps.map((a, i) => {
+            const hue = a.requestedRole === 'CELEBRITY' ? 'peach' : 'lilac';
+            return (
+              <li
+                key={a.id}
+                className="glass animate-rise overflow-hidden rounded-[2rem] shadow-glass"
+                style={{ animationDelay: `${i * 50}ms` }}
+              >
+                <div className={`flex flex-wrap items-center gap-4 px-6 py-5 ${hueSurface[hue]}`}>
+                  <Avatar name={a.user.displayName} hue={hue} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg font-bold leading-tight">{a.user.displayName}</p>
+                    <p className="text-sm text-ink-soft">{a.user.phoneNumber}</p>
+                  </div>
+                  <span className="rounded-full bg-white/80 px-3 py-1 text-sm font-semibold">
+                    {ROLE_LABEL[a.requestedRole]}
+                  </span>
+                  <span className="w-full text-xs text-ink-soft sm:w-auto">
+                    Applied{' '}
+                    {new Date(a.createdAt).toLocaleString('en-IN', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
+                  </span>
+                </div>
+                <div className="grid gap-5 px-6 py-5">
+                  <Details app={a} />
+                  {a.status === 'PENDING' ? (
+                    <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
+                      <label className="min-w-[220px] flex-1">
+                        <span className="sr-only">Note to applicant</span>
+                        <input
+                          placeholder="Note to the applicant (shown if not approved)"
+                          className={fieldClass}
+                          value={notes[a.id] ?? ''}
+                          onChange={(e) => setNotes({ ...notes, [a.id]: e.target.value })}
+                        />
+                      </label>
+                      <Button
+                        variant="quiet"
+                        disabled={busyId === a.id}
+                        onClick={() => review(a.id, 'reject')}
+                      >
+                        Decline
+                      </Button>
+                      <Button disabled={busyId === a.id} onClick={() => review(a.id, 'approve')}>
+                        Approve
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="border-t border-line pt-4 text-sm text-ink-soft">
+                      {a.status === 'APPROVED' ? 'Approved' : 'Not approved'}
+                      {a.reviewedAt &&
+                        ` on ${new Date(a.reviewedAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}`}
+                      {a.reviewNote && `. Note: ${a.reviewNote}`}
+                    </p>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

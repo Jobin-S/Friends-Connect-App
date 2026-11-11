@@ -89,7 +89,15 @@ interface ActiveCallSession {
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const target = loading ? null : !user ? '/welcome' : user.role === 'NORMAL' ? '/home' : null;
+  const target = loading
+    ? null
+    : !user
+      ? '/welcome'
+      : user.role === 'NORMAL'
+        ? '/home'
+        : user.role === 'SUPER_ADMIN'
+          ? '/admin/applications'
+          : null;
 
   useEffect(() => {
     if (target) router.replace(target);

@@ -52,7 +52,9 @@ function CodeInput({ value, onChange }: { value: string; onChange: (v: string) =
 function LoginForm() {
   const { user, loading, requestOtp, verifyOtp } = useAuth();
   const router = useRouter();
-  const next = useSearchParams().get('next') || '/';
+  const params = useSearchParams();
+  const next = params.get('next') || '/';
+  const intent = params.get('intent');
 
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [phone, setPhone] = useState('');
@@ -96,7 +98,7 @@ function LoginForm() {
       const res = await verifyOtp(normalizedPhone, code);
       if (res.status === 'NEEDS_REGISTRATION') {
         savePendingRegistration(res.phone, res.registrationToken);
-        router.push('/register');
+        router.push(intent === 'creator' || intent === 'host' ? `/register?intent=${intent}` : '/register');
       } else {
         router.replace(next);
       }

@@ -3,6 +3,7 @@ import { Avatar, hueSurface } from '@/components/ui/Avatar';
 import { ButtonLink } from '@/components/ui/Button';
 import { Reveal } from '@/components/ui/motion';
 import { OrbitHero } from '@/components/ui/Orbit';
+import { HeaderAuthAction, RedirectIfSignedIn } from '@/components/ui/SignedInGate';
 import { celebrities, events, formatCount, formatRupees } from '@/data/aurora-mock';
 
 const steps = [
@@ -43,11 +44,19 @@ export default function WelcomePage() {
           >
             Events
           </Link>
-          <ButtonLink href="/login" variant="quiet">
-            Log in
-          </ButtonLink>
+          <Link
+            href="/creators"
+            className="hidden rounded-full px-4 py-2 text-ink-soft hover:text-ink md:block"
+          >
+            For creators
+          </Link>
+          <Link href="/hosts" className="hidden rounded-full px-4 py-2 text-ink-soft hover:text-ink md:block">
+            For hosts
+          </Link>
+          <HeaderAuthAction />
         </nav>
       </header>
+      <RedirectIfSignedIn />
 
       {/* Hero */}
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-5 pb-20 pt-12 md:grid-cols-[1.1fr_1fr] md:pt-20">
@@ -175,6 +184,51 @@ export default function WelcomePage() {
         </div>
       </section>
 
+      {/* Other ways to join */}
+      <section className="mx-auto max-w-6xl px-5 py-16">
+        <Reveal>
+          <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">
+            On the other side of the call?
+          </h2>
+          <p className="mt-3 max-w-md text-ink-soft">
+            Creators earn from fan calls and hosts sell tickets to people nearby. We review every application.
+          </p>
+        </Reveal>
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          {[
+            {
+              href: '/creators',
+              hue: 'peach' as const,
+              title: 'Take calls as a creator',
+              body: 'Set your own per-minute rate for audio and video calls, and get paid in coins you can cash out.',
+              cta: 'Apply as a creator',
+            },
+            {
+              href: '/hosts',
+              hue: 'lilac' as const,
+              title: 'Host events near your fans',
+              body: 'Publish gigs, walks and screenings, sell tickets in the app and scan them at the door.',
+              cta: 'Start hosting',
+            },
+          ].map((c, i) => (
+            <Reveal key={c.href} delay={i * 90}>
+              <Link
+                href={c.href}
+                className={`press group flex h-full flex-col justify-between rounded-[2rem] p-7 ${hueSurface[c.hue]}`}
+              >
+                <div>
+                  <h3 className="text-2xl font-extrabold tracking-tight">{c.title}</h3>
+                  <p className="mt-2 max-w-sm leading-relaxed text-ink-soft">{c.body}</p>
+                </div>
+                <span className="mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-white/80 px-5 py-2.5 font-semibold transition-colors group-hover:bg-white">
+                  {c.cta}
+                </span>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* Safety */}
       <section className="mx-auto max-w-6xl px-5 py-16">
         <Reveal className="grid gap-8 rounded-[2.5rem] bg-ink px-8 py-12 text-white md:grid-cols-2 md:px-14">
@@ -242,6 +296,12 @@ export default function WelcomePage() {
             </Link>
             <Link href="/celebrities" className="hover:text-ink">
               Stars
+            </Link>
+            <Link href="/creators" className="hover:text-ink">
+              For creators
+            </Link>
+            <Link href="/hosts" className="hover:text-ink">
+              For hosts
             </Link>
           </span>
         </div>
