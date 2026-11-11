@@ -1,7 +1,12 @@
 import type { ReactNode } from 'react';
 import { AppShell } from '@/components/ui/AppShell';
+import { RequireAuth } from '@/lib/auth';
 
-// TODO(auth merge): wrap in <RequireAuth> from '@/lib/auth' once phase-1-auth lands.
+/** Every app screen needs a signed-in user; logged-out visitors go to /login and come back here. */
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+  return (
+    <RequireAuth>
+      <AppShell>{children}</AppShell>
+    </RequireAuth>
+  );
 }

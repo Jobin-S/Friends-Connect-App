@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { useAuth } from '@/lib/auth';
 import { Avatar } from './Avatar';
 
 const nav = [
@@ -23,6 +24,8 @@ function Icon({ d }: { d: string }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = usePathname() ?? '';
+  const { user } = useAuth();
+  const me = user?.displayName || 'You';
   const active = (href: string) => path === href || path.startsWith(href + '/') || (href === '/events' && path.startsWith('/tickets'));
 
   return (
@@ -58,7 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               Help
             </Link>
             <Link href="/profile" aria-label="Your profile" className="press rounded-full">
-              <Avatar name="Jo S" hue="mint" size="sm" />
+              <Avatar name={me} hue="mint" size="sm" />
             </Link>
           </div>
         </div>

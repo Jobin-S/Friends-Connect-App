@@ -6,6 +6,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Dots } from '@/components/ui/motion';
 import type { Hue } from '@/data/aurora-mock';
 import { useCoins } from '@/data/aurora-store';
+import { RequireAuth } from '@/lib/auth';
 
 type Phase = 'ringing' | 'live' | 'ended';
 
@@ -204,8 +205,10 @@ function CallScreen() {
 
 export default function CallPage() {
   return (
-    <Suspense fallback={<div className="fixed inset-0 bg-ink" />}>
-      <CallScreen />
-    </Suspense>
+    <RequireAuth>
+      <Suspense fallback={<div className="fixed inset-0 bg-ink" />}>
+        <CallScreen />
+      </Suspense>
+    </RequireAuth>
   );
 }

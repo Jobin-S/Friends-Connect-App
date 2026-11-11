@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useAuth } from '@/lib/auth';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
@@ -34,9 +35,13 @@ function Toggle({ label, hint, on, onChange }: { label: string; hint: string; on
 
 export default function ProfilePage() {
   const toast = useToast();
+  const { user, logout } = useAuth();
   const [coins] = useCoins();
   const [tickets] = useTickets();
-  const [name, setName] = useState('Jo S');
+  const [name, setName] = useState(user?.displayName ?? '');
+  const [leaving, setLeaving] = useState(false);
+  const app = user?.latestApplication;
+  const roleLabel = app?.requestedRole === 'ORG' ? 'organizer' : 'star';
   const [mine, setMine] = useState(['Music', 'Films', 'Startups']);
   const [prefs, setPrefs] = useState({ showCity: true, videoOff: true, callAlerts: true, eventAlerts: false });
   const set = (k: keyof typeof prefs) => (v: boolean) => setPrefs((p) => ({ ...p, [k]: v }));
@@ -46,10 +51,21 @@ export default function ProfilePage() {
       <aside className="grid h-fit gap-4">
         <section className="glass rounded-[2rem] p-6 text-center shadow-glass">
           <div className="flex justify-center">
-            <Avatar name={name} hue="mint" size="xl" />
+            <Avatar name={name || 'You'} hue="mint" size="xl" />
           </div>
-          <h1 className="mt-4 text-2xl font-extrabold tracking-tight">{name}</h1>
-          <p className="text-sm text-ink-soft">Kochi, member since November 2026</p>
+          <h1 className="mt-4 text-2xl font-extrabold tracking-tight">{name || 'You'}</h1>
+          <p className="text-sm text-ink-soft">{user?.phoneNumber}</p>
+          {app && app.status !== 'APPROVED' && (
+            <p
+              className={`mt-4 rounded-2xl px-4 py-3 text-left text-sm ${
+                app.status === 'PENDING' ? 'bg-lilac/60' : 'bg-coral-wash'
+              }`}
+            >
+              {app.status === 'PENDING'
+                ? `Your ${roleLabel} application is being reviewed. We will let you know when it is approved.`
+                : `Your ${roleLabel} application was not approved${app.reviewNote ? `: ${app.reviewNote}` : '.'}`}
+            </p>
+          )}
           <dl className="mt-6 grid grid-cols-3 gap-2 text-center">
             {[
               ['Calls', recentChats.length + 21],
@@ -131,9 +147,18 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* TODO(auth merge): call useAuth().logout() here. */}
-        <Button variant="ghost" className="w-fit text-coral-deep" onClick={() => toast('Logged out')}>
-          Log out
+        <Button
+          variant="ghost"
+          className="w-fit text-coral-deep"
+          disabled={leaving}
+          onClick={async () => {
+            setLeaving(true);
+            await logout();
+            // Hard navigation, so it wins over RequireAuth's redirect to /login.
+            window.location.replace('/welcome');
+          }}
+        >
+          {leaving ? 'Logging out…' : 'Log out'}
         </Button>
       </div>
     </div>
